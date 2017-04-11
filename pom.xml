@@ -3,7 +3,7 @@
 
     <groupId>com.alibaba</groupId>
 	<artifactId>spring-boot-starter-dubbo</artifactId>
-	<version>1.4.5-RELEASE</version>
+	<version>1.4.5-SNAPSHOT</version>
 
 	<name>Spring Boot Dubbo Rpc</name>
 	<description>Spring Boot Dubbo Rpc</description>
