@@ -109,7 +109,8 @@ public class FeignProtocol extends AbstractProxyProtocol {
     @Override
     public int getDefaultPort() {
         //该端口与springboot保持一致
-        return 8080;
+        String port = getEnvironment().resolvePlaceholders("${server.port}");
+        return !StringUtils.isBlank(port) ? Integer.parseInt(port) : 8080;
     }
 
     public static <T> T target(String url, Class<T> type) {
