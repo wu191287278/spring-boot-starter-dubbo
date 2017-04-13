@@ -1,1 +1,2 @@
 feign=com.alibaba.dubbo.rpc.protocol.feign.FeignProtocol
+feigns=com.alibaba.dubbo.rpc.protocol.feign.FeignProtocol

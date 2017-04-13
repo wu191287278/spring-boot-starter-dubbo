@@ -83,8 +83,9 @@ public class FeignProtocol extends AbstractProxyProtocol {
         int connections = url.getParameter(Constants.CONNECTIONS_KEY, 20);
         int retries = url.getParameter(Constants.RETRIES_KEY, 0);
 
+
         String schema = "http://";
-        if (url.getPort() == 443 || url.getPort() == 8433) {
+        if (url.getProtocol().equalsIgnoreCase("feigns")) {
             schema = "https://";
         }
 

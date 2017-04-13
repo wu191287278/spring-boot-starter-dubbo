@@ -78,9 +78,9 @@ public interface UserService {
 ```
 
  <dependency>
-        <groupId>com.alibaba</groupId>
+        <groupId>com.github.wu191287278</groupId>
         <artifactId>spring-boot-starter-dubbo</artifactId>
-        <version>1.4.5.SNAPSHOT</version>
+        <version>1.4.5.RELEASE</version>
  </dependency>
  
  <!--依赖于容器-->
