@@ -80,7 +80,7 @@ public interface UserService {
  <dependency>
         <groupId>com.github.wu191287278</groupId>
         <artifactId>spring-boot-starter-dubbo</artifactId>
-        <version>1.4.5.RELEASE</version>
+        <version>1.4.5</version>
  </dependency>
  
  <!--依赖于容器-->
