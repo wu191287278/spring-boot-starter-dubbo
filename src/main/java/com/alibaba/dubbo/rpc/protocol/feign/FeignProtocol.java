@@ -6,8 +6,14 @@ import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
 import com.alibaba.dubbo.rpc.RpcException;
 import com.alibaba.dubbo.rpc.protocol.AbstractProxyProtocol;
+import com.netflix.hystrix.HystrixCommand;
+import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
+import com.netflix.hystrix.HystrixCommandProperties;
+import feign.Feign;
 import feign.RequestInterceptor;
 import feign.Retryer;
+import feign.Target;
 import feign.codec.ErrorDecoder;
 import feign.httpclient.ApacheHttpClient;
 import feign.hystrix.HystrixFeign;
@@ -42,6 +48,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import javax.net.ssl.SSLContext;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 
@@ -124,7 +131,7 @@ public class FeignProtocol extends AbstractProxyProtocol {
         return target(url, type, 20, 3000, 0);
     }
 
-    public static <T> T target(String url, Class<T> type, int connections, int timeout, int retries) {
+    public static <T> T target(String url, Class<T> type, int connections, final int timeout, int retries) {
         SSLContext sslContext = SSLContexts.createSystemDefault();
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", PlainConnectionSocketFactory.INSTANCE)
@@ -146,12 +153,24 @@ public class FeignProtocol extends AbstractProxyProtocol {
                 .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())
                 .build();
 
-        SetterFactory setterFactory = new SetterFactory.Default();
         FeignClient feignClient = type.getAnnotation(FeignClient.class);
         Class<?> fallbackFactory = feignClient.fallbackFactory();
 
+        SetterFactory setterFactory;
         if (void.class != fallbackFactory) {
             setterFactory = getApplicationContext().getBean(SetterFactory.class);
+        } else {
+            setterFactory = new SetterFactory() {
+                @Override
+                public HystrixCommand.Setter create(Target<?> target, Method method) {
+                    String groupKey = target.name();
+                    String commandKey = Feign.configKey(target.type(), method);
+                    return HystrixCommand.Setter
+                            .withGroupKey(HystrixCommandGroupKey.Factory.asKey(groupKey))
+                            .andCommandPropertiesDefaults(HystrixCommandProperties.Setter().withExecutionTimeoutInMilliseconds(timeout))
+                            .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey));
+                }
+            };
         }
 
 
