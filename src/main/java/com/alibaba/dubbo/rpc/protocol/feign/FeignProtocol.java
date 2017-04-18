@@ -11,6 +11,7 @@ import feign.Retryer;
 import feign.codec.ErrorDecoder;
 import feign.httpclient.ApacheHttpClient;
 import feign.hystrix.HystrixFeign;
+import feign.hystrix.SetterFactory;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -93,6 +94,7 @@ public class FeignProtocol extends AbstractProxyProtocol {
 
         FeignClient feignClient = type.getAnnotation(FeignClient.class);
 
+
         if (feignClient != null) {
             //如果feign注解携带url，将以url为准
             if (!StringUtils.isBlank(feignClient.url())) {
@@ -112,6 +114,10 @@ public class FeignProtocol extends AbstractProxyProtocol {
         //该端口与springboot保持一致
         String port = getEnvironment().resolvePlaceholders("${server.port}");
         return !StringUtils.isBlank(port) ? Integer.parseInt(port) : 8080;
+    }
+
+    public static <T> T target(Class<T> type) {
+        return target(getEnvironment().resolvePlaceholders(type.getAnnotation(FeignClient.class).url()), type, 20, 3000, 0);
     }
 
     public static <T> T target(String url, Class<T> type) {
@@ -139,16 +145,47 @@ public class FeignProtocol extends AbstractProxyProtocol {
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(0, true))
                 .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())
                 .build();
-        return HystrixFeign.builder()
+
+        SetterFactory setterFactory = new SetterFactory.Default();
+        FeignClient feignClient = type.getAnnotation(FeignClient.class);
+        Class<?> fallbackFactory = feignClient.fallbackFactory();
+
+        if (void.class != fallbackFactory) {
+            setterFactory = getApplicationContext().getBean(SetterFactory.class);
+        }
+
+
+        HystrixFeign.Builder builder = HystrixFeign.builder()
+                .setterFactory(setterFactory)
                 .requestInterceptors(getApplicationContext().getBeansOfType(RequestInterceptor.class).values())
                 .contract(new SpringMvcContract())
                 .encoder(new SpringEncoder(objectFactory))
                 .decoder(new SpringDecoder(objectFactory))
                 .client(new ApacheHttpClient(httpClient))
                 .errorDecoder(new ErrorDecoder.Default())
-                .retryer(new Retryer.Default(100, 500, retries))
-                .target(type, url);
+                .retryer(new Retryer.Default(100, 500, retries));
+
+        if (feignClient.decode404()) {
+            builder.decode404();
+        }
+
+        Class<?> fallback = feignClient.fallback();
+
+        if (void.class != fallback) {
+            try {
+                Map<String, ?> beansOfType = getApplicationContext().getBeansOfType(fallback);
+                if (beansOfType.size() > 0) {
+                    return builder.target(type, url, (T) getApplicationContext().getBean(fallback));
+                }
+                return builder.target(type, url, (T) fallback.newInstance());
+
+            } catch (Exception e) {
+                throw new RpcException(e);
+            }
+        }
+        return builder.target(type, url);
     }
+
 
     @SuppressWarnings("unchecked")
     private static WebApplicationContext getApplicationContext() {

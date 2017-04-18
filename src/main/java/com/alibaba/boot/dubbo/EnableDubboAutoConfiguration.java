@@ -7,10 +7,10 @@ import java.lang.annotation.*;
 /**
  * Created by wuyu on 2016/10/31.
  */
-@Target({ ElementType.METHOD, ElementType.TYPE })
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(value = { DubboAutoConfiguration.class })
+@Import(value = {DubboAutoConfiguration.class, DubboFeignClientsRegistrar.class})
 public @interface EnableDubboAutoConfiguration {
 
 }
