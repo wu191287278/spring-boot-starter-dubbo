@@ -6,6 +6,7 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.config.spring.AnnotationBean;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import com.alibaba.dubbo.rpc.Protocol;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -61,14 +62,17 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
         if (!isMatchPackage(bean)) {
             return bean;
         }
-        Service service = bean.getClass().getAnnotation(Service.class);
+
+        Class<?> targetClass = AopUtils.getTargetClass(bean);
+        Service service = targetClass.getAnnotation(Service.class);
+
         if (service != null) {
             ServiceBean<Object> serviceConfig = new ServiceBean<Object>(service);
             if (void.class.equals(service.interfaceClass()) && "".equals(service.interfaceName())) {
                 if (bean.getClass().getInterfaces().length > 0) {
-                    serviceConfig.setInterface(bean.getClass().getInterfaces()[0]);
+                    serviceConfig.setInterface(targetClass.getInterfaces()[0]);
                 } else {
-                    throw new IllegalStateException("Failed to export remote service class " + bean.getClass().getName() + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
+                    throw new IllegalStateException("Failed to export remote service class " + targetClass.getName() + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
                 }
             }
 
