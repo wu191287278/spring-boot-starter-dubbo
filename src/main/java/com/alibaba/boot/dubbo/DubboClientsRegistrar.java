@@ -95,6 +95,7 @@ public class DubboClientsRegistrar implements ImportBeanDefinitionRegistrar, Res
                     beanDefinitionBuilder.addPropertyValue("group", resolve(reference.group()))
                             .addPropertyValue("version", resolve(reference.version()))
                             .addPropertyValue("url", resolve(reference.url()))
+                            .addPropertyValue("consumer",resolve(reference.consumer()))
                             .addPropertyValue("loadbalance", resolve(reference.loadbalance()));
 
                 }
