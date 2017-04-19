@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(value = {DubboAutoConfiguration.class, DubboFeignClientsRegistrar.class})
+@Import(value = {DubboAutoConfiguration.class, DubboClientsRegistrar.class})
 public @interface EnableDubboAutoConfiguration {
 
 }

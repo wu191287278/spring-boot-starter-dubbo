@@ -20,19 +20,19 @@ public class DubboAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ApplicationConfig requestApplicationConfig() {
+    public ApplicationConfig applicationConfig() {
         return dubboProperties.getApplication();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public RegistryConfig requestRegistryConfig() {
+    public RegistryConfig registryConfig() {
         return dubboProperties.getRegistry();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public ProtocolConfig requestProtocolConfig() {
+    public ProtocolConfig protocolConfig() {
         return dubboProperties.getProtocol();
     }
 

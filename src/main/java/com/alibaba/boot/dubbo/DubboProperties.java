@@ -16,7 +16,7 @@ public class DubboProperties {
     private RegistryConfig    registry;
 
     @NestedConfigurationProperty
-    private ProtocolConfig    protocol;
+    private ProtocolConfig    protocol = new ProtocolConfig("dubbo",20880);
 
     public String getScan() {
         return scan;

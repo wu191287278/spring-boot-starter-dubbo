@@ -1,5 +1,6 @@
 package com.alibaba.boot.dubbo;
 
+import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.config.spring.ReferenceBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -23,44 +24,68 @@ import java.util.Set;
 /**
  * Created by wuyu on 2017/4/18.
  */
-public class DubboFeignClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
+public class DubboClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
 
     private ResourceLoader resourceLoader;
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
-        registerFeignClients(metadata, registry);
+        try {
+            registerFeignClients(metadata, registry);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
 
-    public void registerFeignClients(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
+    public void registerFeignClients(AnnotationMetadata metadata, BeanDefinitionRegistry registry) throws ClassNotFoundException {
         String scan = resolve("${spring.dubbo.scan}");
         if (StringUtils.isEmpty(scan)) {
             return;
         }
-        if (ClassUtils.isPresent("org.springframework.cloud.netflix.feign.FeignClient", this.getClass().getClassLoader())) {
-            ClassPathScanningCandidateComponentProvider provider = getScanner();
-            provider.addIncludeFilter(new AnnotationTypeFilter(FeignClient.class));
-            for (String basePackage : scan.split(",")) {
-                Set<BeanDefinition> candidateComponents = provider.findCandidateComponents(basePackage);
-                for (BeanDefinition candidateComponent : candidateComponents) {
 
-                    AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ReferenceBean.class)
-                            .addPropertyValue("interface", candidateComponent.getBeanClassName())
-                            .getBeanDefinition();
-                    beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
-                    registry.registerBeanDefinition(getAliasName(candidateComponent.getBeanClassName()), beanDefinition);
+        ClassPathScanningCandidateComponentProvider provider = getScanner();
+
+        if (ClassUtils.isPresent("org.springframework.cloud.netflix.feign.FeignClient", this.getClass().getClassLoader())) {
+            provider.addIncludeFilter(new AnnotationTypeFilter(FeignClient.class));
+        }
+
+        provider.addIncludeFilter(new AnnotationTypeFilter(DubboClient.class));
+        for (String basePackage : scan.split(",")) {
+            Set<BeanDefinition> candidateComponents = provider.findCandidateComponents(basePackage);
+            for (BeanDefinition candidateComponent : candidateComponents) {
+                String beanClassName = candidateComponent.getBeanClassName();
+                Class<?> aClass = ClassUtils.forName(beanClassName, DubboClientsRegistrar.class.getClassLoader());
+                BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ReferenceBean.class);
+
+                DubboClient dubboReference = aClass.getAnnotation(DubboClient.class);
+
+                if (dubboReference != null) {
+                    Reference reference = dubboReference.value();
+                    beanDefinitionBuilder.addConstructorArgValue(reference);
+
+                    if (!StringUtils.isEmpty(dubboReference.protocol())) {
+                        beanDefinitionBuilder.addPropertyValue("protocol", dubboReference.protocol());
+                    }
                 }
+
+                AbstractBeanDefinition definition = beanDefinitionBuilder
+                        .addPropertyValue("interface", beanClassName)
+                        .getBeanDefinition();
+                beanDefinitionBuilder.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
+                registry.registerBeanDefinition(getAliasName(beanClassName), definition);
             }
         }
     }
 
     protected String getAliasName(String className) {
         try {
-            Class<?> client = ClassUtils.forName(className, DubboFeignClientsRegistrar.class.getClassLoader());
-            FeignClient feignClient = client.getAnnotation(FeignClient.class);
-            if (!StringUtils.isEmpty(feignClient.qualifier())) {
-                return feignClient.qualifier();
+            if (ClassUtils.isPresent("org.springframework.cloud.netflix.feign.FeignClient", this.getClass().getClassLoader())) {
+                Class<?> client = ClassUtils.forName(className, DubboClientsRegistrar.class.getClassLoader());
+                FeignClient feignClient = client.getAnnotation(FeignClient.class);
+                if (feignClient != null && !StringUtils.isEmpty(feignClient.qualifier())) {
+                    return feignClient.qualifier();
+                }
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
