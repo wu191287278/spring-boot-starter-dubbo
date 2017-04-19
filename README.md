@@ -1,15 +1,15 @@
-#spring-boot-start-dubbo
+*spring-boot-start-dubbo*
 
 * Dubbo是阿里开发的一套分布式通讯框架,Spring-boot是业界比较火的微服务框架，两者可以进行结合实现分布式微服务
 * 对于内部远程Rpc调用，可以借用Dubbo能力，达到服务治理的目的
 
-##增加feign protocol支持。
+*增加feign protocol支持*
 
 > 该协议主要是为了支持老项目可以消费springcloud提供的接口，并可以利用dubbo的服务发现，构建出一个springboot rest集群，
 > dubbo与springboot结合时，不需要dubbo再次导出rest服务。而是由springboot提供rest服务dubbo端只负责注册，构建服务目录。
 
 
-##如何发布Dubbo服务
+*如何发布Dubbo服务*
 在Spring Boot项目的pom.xml中添加以下依赖:
 
 ```
@@ -20,7 +20,7 @@
  </dependency>
  ```
 
-###example
+*example*
 
 ```
 //服务端，多协议发布服务
@@ -49,6 +49,16 @@ public class UserServiceImpl implements UserService {
     }
     
 }
+
+@SpringBootApplication
+@EnableDubboAutoConfiguration
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+
 
 //消费端
 @FeignClient(path = "/user")
@@ -130,18 +140,6 @@ spring:
 ```
 
 
-spring boot启动
-```
 
-@SpringBootApplication
-@EnableDubboAutoConfiguration
-public class Application {
-
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
-}
-```
-
-###演示样例
+*演示样例*
 *https://git.oschina.net/wuyu15255872976/dubbo-demo-parent.git*
