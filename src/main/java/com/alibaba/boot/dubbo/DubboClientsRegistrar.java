@@ -2,6 +2,8 @@ package com.alibaba.boot.dubbo;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.config.spring.ReferenceBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -27,6 +29,8 @@ import java.util.Set;
 public class DubboClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
 
     private ResourceLoader resourceLoader;
+
+    private final static Logger logger = LoggerFactory.getLogger(DubboClientsRegistrar.class);
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
@@ -67,6 +71,32 @@ public class DubboClientsRegistrar implements ImportBeanDefinitionRegistrar, Res
                     if (!StringUtils.isEmpty(dubboReference.protocol())) {
                         beanDefinitionBuilder.addPropertyValue("protocol", dubboReference.protocol());
                     }
+
+                    if(!StringUtils.isEmpty(dubboReference.connections())){
+                        beanDefinitionBuilder.addPropertyValue("connections", Integer.parseInt(resolve(dubboReference.connections())));
+
+                    }
+
+                    if(!StringUtils.isEmpty(dubboReference.retries())){
+                        beanDefinitionBuilder.addPropertyValue("retries", Integer.parseInt(resolve(dubboReference.retries())));
+
+                    }
+
+                    if(!StringUtils.isEmpty(dubboReference.actives())){
+                        beanDefinitionBuilder.addPropertyValue("actives", Integer.parseInt(resolve(dubboReference.actives())));
+
+                    }
+
+                    if(!StringUtils.isEmpty(dubboReference.timeout())){
+                        beanDefinitionBuilder.addPropertyValue("actives", Integer.parseInt(resolve(dubboReference.timeout())));
+
+                    }
+
+                    beanDefinitionBuilder.addPropertyValue("group", resolve(reference.group()))
+                            .addPropertyValue("version", resolve(reference.version()))
+                            .addPropertyValue("url", resolve(reference.url()))
+                            .addPropertyValue("loadbalance", resolve(reference.loadbalance()));
+
                 }
 
                 AbstractBeanDefinition definition = beanDefinitionBuilder
@@ -144,5 +174,14 @@ public class DubboClientsRegistrar implements ImportBeanDefinitionRegistrar, Res
         }
         return value;
     }
+
+    public String[] resolveArray(String[] array) {
+        String[] resolveArray = new String[array.length];
+        for (int i = 0; i < array.length; i++) {
+            resolveArray[i] = resolve(array[i]);
+        }
+        return resolveArray;
+    }
+
 }
 

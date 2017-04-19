@@ -15,5 +15,14 @@ public @interface DubboClient {
     //Dubbo @Reference bug
     String protocol() default "";
 
+    //String类型支持el表达式，可以通过配置文件动态配置
+    String timeout() default "";
+
+    String connections() default "";
+
+    String retries() default "";
+
+    String actives() default "";
+
     Reference value() default @Reference;
 }
