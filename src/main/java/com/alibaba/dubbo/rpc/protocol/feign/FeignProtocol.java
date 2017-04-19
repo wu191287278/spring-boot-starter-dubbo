@@ -131,7 +131,7 @@ public class FeignProtocol extends AbstractProxyProtocol {
         return target(url, type, 20, 3000, 0);
     }
 
-    public static <T> T target(String url, Class<T> type, int connections, final int timeout, int retries) {
+    public static <T> T target(String url, Class<T> type, final int connections, final int timeout, int retries) {
         SSLContext sslContext = SSLContexts.createSystemDefault();
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", PlainConnectionSocketFactory.INSTANCE)
@@ -167,7 +167,9 @@ public class FeignProtocol extends AbstractProxyProtocol {
                     String commandKey = Feign.configKey(target.type(), method);
                     return HystrixCommand.Setter
                             .withGroupKey(HystrixCommandGroupKey.Factory.asKey(groupKey))
-                            .andCommandPropertiesDefaults(HystrixCommandProperties.Setter().withExecutionTimeoutInMilliseconds(timeout))
+                            .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
+                                    .withExecutionTimeoutInMilliseconds(timeout)
+                                    .withExecutionIsolationSemaphoreMaxConcurrentRequests(connections))
                             .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey));
                 }
             };
