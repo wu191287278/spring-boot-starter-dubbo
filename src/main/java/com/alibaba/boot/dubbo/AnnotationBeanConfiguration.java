@@ -69,7 +69,7 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
         if (service != null) {
             ServiceBean<Object> serviceConfig = new ServiceBean<Object>(service);
             if (void.class.equals(service.interfaceClass()) && "".equals(service.interfaceName())) {
-                if (bean.getClass().getInterfaces().length > 0) {
+                if (targetClass.getInterfaces().length > 0) {
                     serviceConfig.setInterface(targetClass.getInterfaces()[0]);
                 } else {
                     throw new IllegalStateException("Failed to export remote service class " + targetClass.getName() + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
