@@ -88,16 +88,24 @@ public class DubboClientsRegistrar implements ImportBeanDefinitionRegistrar, Res
                     }
 
                     if(!StringUtils.isEmpty(dubboReference.timeout())){
-                        beanDefinitionBuilder.addPropertyValue("actives", Integer.parseInt(resolve(dubboReference.timeout())));
-
+                        beanDefinitionBuilder.addPropertyValue("timeout", Integer.parseInt(resolve(dubboReference.timeout())));
                     }
 
-                    beanDefinitionBuilder.addPropertyValue("group", resolve(reference.group()))
-                            .addPropertyValue("version", resolve(reference.version()))
-                            .addPropertyValue("url", resolve(reference.url()))
-                            .addPropertyValue("consumer",resolve(reference.consumer()))
-                            .addPropertyValue("loadbalance", resolve(reference.loadbalance()));
+                    if(!StringUtils.isEmpty(reference.group())){
+                        beanDefinitionBuilder.addPropertyValue("group", resolve(reference.group()));
+                    }
 
+                    if(!StringUtils.isEmpty(reference.version())){
+                        beanDefinitionBuilder.addPropertyValue("version", resolve(reference.version()));
+                    }
+
+                    if(!StringUtils.isEmpty(reference.url())){
+                        beanDefinitionBuilder.addPropertyValue("url", resolve(reference.url()));
+                    }
+
+                    if(!StringUtils.isEmpty(reference.loadbalance())){
+                        beanDefinitionBuilder.addPropertyValue("loadbalance", resolve(reference.loadbalance()));
+                    }
                 }
 
                 AbstractBeanDefinition definition = beanDefinitionBuilder

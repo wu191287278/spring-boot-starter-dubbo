@@ -1,29 +1,25 @@
 package com.alibaba.boot.dubbo.endpoint;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
-
+import com.alibaba.boot.dubbo.DubboProperties;
+import com.alibaba.dubbo.config.ServiceConfig;
+import com.alibaba.dubbo.config.spring.AnnotationBean;
+import com.alibaba.dubbo.config.spring.ReferenceBean;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.actuate.endpoint.AbstractEndpoint;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.ReflectionUtils;
 
-import com.alibaba.dubbo.config.ServiceConfig;
-import com.alibaba.dubbo.config.spring.AnnotationBean;
-import com.alibaba.dubbo.config.spring.ReferenceBean;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.*;
 
-public class DubboEndpoint extends AbstractEndpoint<List<Object>> implements ApplicationContextAware {
+public class DubboEndpoint extends AbstractEndpoint<Map<String, Object>> implements ApplicationContextAware {
 
     private ApplicationContext context;
 
-    public DubboEndpoint(){
+    public DubboEndpoint() {
         super("dubbo");
     }
 
@@ -33,7 +29,7 @@ public class DubboEndpoint extends AbstractEndpoint<List<Object>> implements App
     }
 
     @Override
-    public List<Object> invoke() {
+    public Map<String, Object> invoke() {
         List<ProviderBean> publishedInterfaceList = new ArrayList<>();
         List<ConsumerBean> subscribedInterfaceList = new ArrayList<>();
         AnnotationBean annotationBean = context.getBean(AnnotationBean.class);
@@ -44,37 +40,52 @@ public class DubboEndpoint extends AbstractEndpoint<List<Object>> implements App
             final Set<ServiceConfig<?>> serviceConfigs = (Set<ServiceConfig<?>>) services;
             for (ServiceConfig config : serviceConfigs) {
                 ProviderBean providerBean = new ProviderBean();
-                providerBean.setTarget(config.getStub());
-                providerBean.setServiceInterface(config.getInterface());
-                providerBean.setServiceVersion(config.getVersion());
-                providerBean.setClientTimeout(config.getTimeout());
-                providerBean.setMethodNames(config.getMethods());
+                Class<?> interfaceName = config.getInterfaceClass();
+                List<String> methodNames = new ArrayList<>();
+                Method[] methods = interfaceName.getMethods();
+                for (Method method : methods) {
+                    methodNames.add(method.getName());
+                }
+
+                providerBean.setTarget(AopUtils.getTargetClass(config.getRef()).getName());
+                providerBean.setInterfaceName(config.getInterface());
+                providerBean.setVersion(config.getVersion());
+                providerBean.setTimeout(config.getTimeout());
+                providerBean.setMethodNames(methodNames);
+                providerBean.setRetries(config.getRetries());
+                providerBean.setActives(config.getActives());
+                providerBean.setLoadbalance(config.getLoadbalance());
+                providerBean.setConnections(config.getConnections());
                 publishedInterfaceList.add(providerBean);
             }
         }
-        Field referenceConfigsField = ReflectionUtils.findField(AnnotationBean.class, "referenceConfigs");
-        ReflectionUtils.makeAccessible(referenceConfigsField);
-        Object references = ReflectionUtils.getField(referenceConfigsField, annotationBean);
-        if (references instanceof ConcurrentMap) {
-            final ConcurrentMap<String, ReferenceBean<?>> referenceConfigs = (ConcurrentMap<String, ReferenceBean<?>>) references;
-            for (Entry<String, ReferenceBean<?>> reference : referenceConfigs.entrySet()) {
-                ReferenceBean referenceBean = reference.getValue();
-                ConsumerBean consumerBean = new ConsumerBean();
-                consumerBean.setGroup(consumerBean.getGroup());
-                consumerBean.setInterfaceName(consumerBean.getInterfaceName());
-                consumerBean.setMethodNames(consumerBean.getMethodNames());
-                consumerBean.setVersion(consumerBean.getVersion());
-                subscribedInterfaceList.add(consumerBean);
+
+        Map<String, ReferenceBean> referenceBeanMap = context.getBeansOfType(ReferenceBean.class);
+        for (ReferenceBean referenceBean : referenceBeanMap.values()) {
+            ConsumerBean consumerBean = new ConsumerBean();
+            Class interfaceClass = referenceBean.getInterfaceClass();
+            List<String> methodNames = new ArrayList<>();
+            for (Method method : interfaceClass.getMethods()) {
+                methodNames.add(method.getName());
             }
+            consumerBean.setGroup(referenceBean.getGroup());
+            consumerBean.setInterfaceName(referenceBean.getInterface());
+            consumerBean.setMethodNames(methodNames);
+            consumerBean.setConnections(referenceBean.getConnections());
+            consumerBean.setActives(referenceBean.getActives());
+            consumerBean.setRetries(referenceBean.getRetries());
+            consumerBean.setVersion(referenceBean.getVersion());
+            consumerBean.setTimeout(referenceBean.getTimeout());
+            consumerBean.setLoadbalance(referenceBean.getLoadbalance());
+            subscribedInterfaceList.add(consumerBean);
         }
-        List<Object> all = new ArrayList<Object>();
-        Map<String, List> provider = new HashMap<String, List>();
-        provider.put("provider", publishedInterfaceList);
-        Map<String, List> consumer = new HashMap<String, List>();
-        consumer.put("consumer", subscribedInterfaceList);
-        all.add(provider);
-        all.add(consumer);
-        return all;
+
+        DubboProperties dubboProperties = context.getBean(DubboProperties.class);
+        Map<String, Object> map = new HashMap<>();
+        map.put("consumer", subscribedInterfaceList);
+        map.put("provider", publishedInterfaceList);
+        map.put("properties", dubboProperties);
+        return map;
     }
 
 }

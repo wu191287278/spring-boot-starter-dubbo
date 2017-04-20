@@ -7,7 +7,14 @@ public class ConsumerBean {
     private String       group;
     private String       version;
     private String       interfaceName;
-    private List<String> methodNames;
+    private List methodNames;
+    private Integer timeout;
+    private Integer connections;
+    private String protocol;
+    private Integer retries;
+    private Integer actives;
+    private String loadbalance;
+
 
     public String getGroup() {
         return group;
@@ -33,11 +40,62 @@ public class ConsumerBean {
         this.interfaceName = interfaceName;
     }
 
-    public List<String> getMethodNames() {
-        return methodNames;
+
+    public Integer getTimeout() {
+        return timeout;
     }
 
-    public void setMethodNames(List<String> methodNames) {
+    public void setTimeout(Integer timeout) {
+        this.timeout = timeout;
+    }
+
+    public Integer getConnections() {
+        return connections;
+    }
+
+    public void setConnections(Integer connections) {
+        this.connections = connections;
+    }
+
+    public String getLoadbalance() {
+        return loadbalance;
+    }
+
+    public void setLoadbalance(String loadbalance) {
+        this.loadbalance = loadbalance;
+    }
+
+
+
+    public Integer getActives() {
+        return actives;
+    }
+
+    public void setActives(Integer actives) {
+        this.actives = actives;
+    }
+
+    public Integer getRetries() {
+        return retries;
+    }
+
+    public void setRetries(Integer retries) {
+        this.retries = retries;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
+
+    public void setMethodNames(List methodNames) {
         this.methodNames = methodNames;
+    }
+
+    public List getMethodNames() {
+        return methodNames;
     }
 }
