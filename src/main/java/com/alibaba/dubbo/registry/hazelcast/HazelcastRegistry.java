@@ -29,7 +29,7 @@ public class HazelcastRegistry extends AbstractRegistry {
             String managerUrl = url.getParameter("managementCenter");
             config.getManagementCenterConfig().setEnabled(true);
             config.getManagementCenterConfig().setUrl(managerUrl);
-            config.getManagementCenterConfig().setUpdateInterval(url.getParameter("updateInterva", 5));
+            config.getManagementCenterConfig().setUpdateInterval(url.getParameter("updateInterval", 5));
         }
         config.setGroupConfig(new GroupConfig(url.getUsername() == null ? "dubbo" : url.getUsername(), url.getPassword() == null ? "dubbo" : url.getPassword()));
         this.hazelcastInstance = HazelcastInstanceFactory.getOrCreateHazelcastInstance(config);
