@@ -24,8 +24,8 @@ public class HazelcastRegistry extends AbstractRegistry {
     public HazelcastRegistry(URL url) {
         super(url);
         Config config = new Config("dubbo");
-        config.setGroupConfig(new GroupConfig("dubbo","dubbo"));
-        this.hazelcastInstance = HazelcastInstanceFactory .getOrCreateHazelcastInstance(config);
+        config.setGroupConfig(new GroupConfig("dubbo", "dubbo"));
+        this.hazelcastInstance = HazelcastInstanceFactory.getOrCreateHazelcastInstance(config);
         this.replicatedMap = hazelcastInstance.getReplicatedMap("dubbo-registered");
         replicatedMap.put(nodeId, new LinkedHashSet<String>());
         replicatedMap.addEntryListener(new EntryAdapter<String, Set<String>>() {
@@ -55,16 +55,30 @@ public class HazelcastRegistry extends AbstractRegistry {
             logger.info("Register: " + url);
         }
 
+
         Set<String> urls = replicatedMap.get(nodeId);
         urls.add(url.toFullString());
-        replicatedMap.put(nodeId, urls);
+
+        ILock lock = hazelcastInstance.getLock(nodeId);
+        lock.lock();
+        try {
+            replicatedMap.put(nodeId, urls);
+        } finally {
+            lock.unlock();
+        }
         getRegistered().add(url);
     }
 
     @Override
     public void unregister(URL url) {
         Set<String> urls = replicatedMap.get(this.nodeId);
-        urls.remove(url.toFullString());
+        ILock lock = hazelcastInstance.getLock(nodeId);
+        lock.lock();
+        try {
+            urls.remove(url.toFullString());
+        } finally {
+            lock.unlock();
+        }
         getRegistered().remove(url);
     }
 
@@ -81,7 +95,13 @@ public class HazelcastRegistry extends AbstractRegistry {
     @Override
     public void destroy() {
         try {
-            replicatedMap.remove(nodeId);
+            ILock lock = hazelcastInstance.getLock(nodeId);
+            lock.lock();
+            try {
+                replicatedMap.remove(nodeId);
+            } finally {
+                lock.unlock();
+            }
             hazelcastInstance.shutdown();
         } catch (Exception e) {
             logger.warn(e.getMessage());
