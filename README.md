@@ -10,6 +10,7 @@
 
 
 **如何发布Dubbo服务**
+
 在Spring Boot项目的pom.xml中添加以下依赖:
 
 ```
@@ -183,10 +184,12 @@ spring:
 
 
 **演示样例**
+
 *https://git.oschina.net/wuyu15255872976/dubbo-demo-parent.git*
 
 
-新增Hazelcast 注册中心
+**新增Hazelcast 注册中心**
+
 ---
 
 ```
@@ -205,7 +208,8 @@ spring:
 
 
 
-Hazelcast 监控中心
+**Hazelcast 监控中心**
+
 ```
 地址：https://hazelcast.org/download/
 
