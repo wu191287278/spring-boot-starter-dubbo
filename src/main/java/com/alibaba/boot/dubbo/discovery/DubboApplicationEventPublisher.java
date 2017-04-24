@@ -23,6 +23,6 @@ public class DubboApplicationEventPublisher implements ApplicationEventPublisher
 
     @Override
     public void notify(List<URL> urls) {
-        applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(DiscoveryClient.class, urls));
+        applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(DubboDiscoveryClient.class, urls));
     }
 }
