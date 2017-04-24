@@ -149,7 +149,8 @@ spring:
 ```
 
 
-网关支持，支持聚合dubbo rest服务同时兼容springcloud rest代理
+
+*网关支持，支持聚合dubbo rest服务同时兼容springcloud rest代理
 ---
 
 maven 依赖
