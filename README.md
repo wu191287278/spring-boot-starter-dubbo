@@ -140,6 +140,34 @@ spring:
 ```
 
 
+新增Hazelcast 注册中心
+---
+
+```
+spring:
+  application:
+    name: dubbo-application
+
+  dubbo:
+    application:
+      name: ${spring.application.name}
+    registry:
+      protocol: hazelcast
+      address: 224.5.6.7:1234?managementCenter=http://localhost:8080/mancenter #managementCenter 是hazelcast监控地址，可以不填写
+```
+
 
 *演示样例*
 *https://git.oschina.net/wuyu15255872976/dubbo-demo-parent.git*
+
+
+Hazelcast 监控中心
+```
+地址：https://hazelcast.org/download/
+
+```
+![](https://github.com/wu191287278/picture/blob/master/start-dubbo/1.png)
+![](https://github.com/wu191287278/picture/blob/master/start-dubbo/2.png)
+![](https://github.com/wu191287278/picture/blob/master/start-dubbo/3.png)
+![](https://github.com/wu191287278/picture/blob/master/start-dubbo/4.png)
+![](https://github.com/wu191287278/picture/blob/master/start-dubbo/5.png)

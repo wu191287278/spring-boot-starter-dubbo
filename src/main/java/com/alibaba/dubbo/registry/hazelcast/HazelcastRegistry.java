@@ -17,16 +17,40 @@ public class HazelcastRegistry extends AbstractRegistry {
 
     private HazelcastInstance hazelcastInstance;
 
-    private ReplicatedMap<String, Set<String>> replicatedMap;
+    private final ReplicatedMap<String, Set<String>> replicatedMap;
 
-    private String nodeId = UUID.randomUUID().toString();
+    private final String nodeId;
 
     public HazelcastRegistry(URL url) {
         super(url);
         Config config = new Config("dubbo");
-        config.setGroupConfig(new GroupConfig("dubbo", "dubbo"));
+
+        if (url.getParameter("managementCenter") != null) {
+            String managerUrl = url.getParameter("managementCenter");
+            config.getManagementCenterConfig().setEnabled(true);
+            config.getManagementCenterConfig().setUrl(managerUrl);
+            config.getManagementCenterConfig().setUpdateInterval(url.getParameter("updateInterva", 5));
+        }
+        config.setGroupConfig(new GroupConfig(url.getUsername() == null ? "dubbo" : url.getUsername(), url.getPassword() == null ? "dubbo" : url.getPassword()));
         this.hazelcastInstance = HazelcastInstanceFactory.getOrCreateHazelcastInstance(config);
+        this.hazelcastInstance.getCluster().addMembershipListener(new MembershipListener() {
+            @Override
+            public void memberAdded(MembershipEvent membershipEvent) {
+
+            }
+
+            @Override
+            public void memberRemoved(MembershipEvent membershipEvent) {
+               replicatedMap.remove(membershipEvent.getMember().getUuid());
+            }
+
+            @Override
+            public void memberAttributeChanged(MemberAttributeEvent memberAttributeEvent) {
+
+            }
+        });
         this.replicatedMap = hazelcastInstance.getReplicatedMap("dubbo-registered");
+        this.nodeId = hazelcastInstance.getCluster().getLocalMember().getUuid();
         replicatedMap.put(nodeId, new LinkedHashSet<String>());
         replicatedMap.addEntryListener(new EntryAdapter<String, Set<String>>() {
             @Override
@@ -110,6 +134,9 @@ public class HazelcastRegistry extends AbstractRegistry {
     }
 
     private List<URL> toUrl(Collection<String> urls) {
+        if (urls == null) {
+            return new ArrayList<>();
+        }
         List<URL> converts = new ArrayList<>();
         for (String url : urls) {
             converts.add(URL.valueOf(URL.decode(url)));
