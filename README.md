@@ -1,11 +1,11 @@
-###spring-boot-start-dubbo
+spring-boot-start-dubbo
 
 ---
 
 * Dubbo是阿里开发的一套分布式通讯框架,Spring-boot是业界比较火的微服务框架，两者可以进行结合实现分布式微服务
 * 对于内部远程Rpc调用，可以借用Dubbo能力，达到服务治理的目的
 
-###增加feign protocol支持
+增加feign protocol支持
 
 ---
 
@@ -13,7 +13,7 @@
 > dubbo与springboot结合时，不需要dubbo再次导出rest服务。而是由springboot提供rest服务dubbo端只负责注册，构建服务目录。
 
 
-###如何发布Dubbo服务
+如何发布Dubbo服务
 
 ---
 
@@ -27,7 +27,7 @@
  </dependency>
  ```
 
-###example
+example
 
 ---
 
@@ -132,7 +132,7 @@ public class UserServiceTest {
 ```
 
 
-###在application.properties添加Dubbo的版本信息和客户端超时信息,如下:###
+在application.properties添加Dubbo的版本信息和客户端超时信息,如下:
 ---
 
 ```
@@ -151,7 +151,7 @@ spring:
 ```
 
 
-###网关支持，支持聚合dubbo rest服务同时兼容springcloud rest代理
+网关支持，支持聚合dubbo rest服务同时兼容springcloud rest代理
 
 ---
 
@@ -192,13 +192,13 @@ spring:
 
 
 
-###演示样例
+演示样例
 ---
 
 *https://git.oschina.net/wuyu15255872976/dubbo-demo-parent.git*
 
 
-###新增Hazelcast 注册中心
+新增Hazelcast 注册中心
 ---
 
 ```
@@ -217,7 +217,7 @@ spring:
 
 
 
-###Hazelcast 监控中心
+Hazelcast 监控中心
 ---
 
 ```
