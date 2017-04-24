@@ -98,7 +98,8 @@ public class HazelcastRegistry extends AbstractRegistry {
             ILock lock = hazelcastInstance.getLock(nodeId);
             lock.lock();
             try {
-                replicatedMap.remove(nodeId);
+                Set<String> urls = replicatedMap.remove(nodeId);
+                notify(toUrl(urls));
             } finally {
                 lock.unlock();
             }
