@@ -39,7 +39,7 @@ public class DubboGatewayConfiguration {
 
     @Bean
     @ConditionalOnClass(RouteLocator.class)
-    @ConditionalOnMissingBean(DubboDiscoveryClient.class)
+    @ConditionalOnMissingBean(value = {DubboDiscoveryClient.class, DubboRouteLocator.class})
     @Primary
     public DubboRouteLocator dubboRouteLocator(ServerProperties serverProperties,
                                                ZuulProperties zuulProperties,
