@@ -9,9 +9,6 @@ public class DubboProperties {
 
     private String            scan = "";
 
-    //支持扫描@RestController注解
-    private boolean           restController = true;
-
     //全局超时时间
     private Integer           timeout = 1000;
 
@@ -55,16 +52,6 @@ public class DubboProperties {
     public void setScan(String scan) {
         this.scan = scan;
     }
-
-
-    public boolean isRestController() {
-        return restController;
-    }
-
-    public void setRestController(boolean restController) {
-        this.restController = restController;
-    }
-
 
     public Integer getTimeout() {
         return timeout;

@@ -11,7 +11,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -66,7 +65,6 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
 
         Class<?> targetClass = AopUtils.getTargetClass(bean);
         Service service = targetClass.getAnnotation(Service.class);
-        RestController restController = targetClass.getAnnotation(RestController.class);
 
         //全局超时时间
         String timeout = applicationContext.getEnvironment().resolvePlaceholders("${spring.dubbo.timeout}");
@@ -135,7 +133,7 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
             serviceConfig.setRef(bean);
             addServiceConfig(serviceConfig);
             serviceConfig.export();
-        } else if (restController != null && "true".equalsIgnoreCase(applicationContext.getEnvironment().resolvePlaceholders("${spring.dubbo.restController}"))) {
+        } /*else if (restController != null && "true".equalsIgnoreCase(applicationContext.getEnvironment().resolvePlaceholders("${spring.dubbo.restController}"))) {
             if (targetClass.getAnnotation(DubboClient.class) != null) return bean;
             ServiceBean<Object> serviceConfig = new ServiceBean<Object>();
             if (targetClass.getInterfaces().length > 0) {
@@ -159,7 +157,7 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
             serviceConfig.setRef(bean);
             addServiceConfig(serviceConfig);
             serviceConfig.export();
-        }
+        }*/
         return bean;
     }
 
