@@ -131,7 +131,6 @@ public class UserServiceTest {
 
 
 在application.properties添加Dubbo的版本信息和客户端超时信息,如下:
----
 
 ```
 spring:
