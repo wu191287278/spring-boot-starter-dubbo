@@ -11,6 +11,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -65,6 +66,10 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
 
         Class<?> targetClass = AopUtils.getTargetClass(bean);
         Service service = targetClass.getAnnotation(Service.class);
+        RestController restController = targetClass.getAnnotation(RestController.class);
+
+        //全局超时时间
+        String timeout = applicationContext.getEnvironment().resolvePlaceholders("${spring.dubbo.timeout}");
 
         if (service != null) {
             ServiceBean<Object> serviceConfig = new ServiceBean<Object>(service);
@@ -102,6 +107,10 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
                 if (service.provider().length() > 0) {
                     serviceConfig.setProvider(applicationContext.getBean(service.provider(), ProviderConfig.class));
                 }
+                if (service.timeout() == 0) {
+                    //设置全局超时时间
+                    serviceConfig.setTimeout(Integer.parseInt(timeout));
+                }
 
                 if (service.protocol().length > 0) {
                     List<ProtocolConfig> protocolConfigs = new ArrayList<>();
@@ -124,20 +133,46 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
                 }
             }
             serviceConfig.setRef(bean);
-
+            addServiceConfig(serviceConfig);
+            serviceConfig.export();
+        } else if (restController != null && "true".equalsIgnoreCase(applicationContext.getEnvironment().resolvePlaceholders("${spring.dubbo.restController}"))) {
+            if (targetClass.getAnnotation(DubboClient.class) != null) return bean;
+            ServiceBean<Object> serviceConfig = new ServiceBean<Object>();
+            if (targetClass.getInterfaces().length > 0) {
+                serviceConfig.setInterface(targetClass.getInterfaces()[0]);
+            } else {
+                throw new IllegalStateException("Failed to export remote service class " + targetClass.getName() + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
+            }
+            //全局超时时间
+            serviceConfig.setTimeout(Integer.parseInt(timeout));
+            String port = applicationContext.getEnvironment().resolvePlaceholders("${server.port}");
+            serviceConfig.setProtocol(new ProtocolConfig("feign", Integer.parseInt(port)));
 
             try {
-                Field serviceConfigsField = ReflectionUtils.findField(AnnotationBean.class, "serviceConfigs");
-                serviceConfigsField.setAccessible(true);
-                Set<ServiceConfig<?>> serviceConfigs = (Set<ServiceConfig<?>>) serviceConfigsField.get(this);
-                serviceConfigs.add(serviceConfig);
+                serviceConfig.afterPropertiesSet();
+            } catch (RuntimeException e) {
+                throw e;
             } catch (Exception e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
 
+            serviceConfig.setRef(bean);
+            addServiceConfig(serviceConfig);
             serviceConfig.export();
         }
         return bean;
+    }
+
+    protected void addServiceConfig(ServiceBean serviceBean) {
+        try {
+            Field serviceConfigsField = ReflectionUtils.findField(AnnotationBean.class, "serviceConfigs");
+            serviceConfigsField.setAccessible(true);
+            Set<ServiceConfig<?>> serviceConfigs = (Set<ServiceConfig<?>>) serviceConfigsField.get(this);
+            serviceConfigs.add(serviceBean);
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+
     }
 
     private boolean isMatchPackage(Object bean) {

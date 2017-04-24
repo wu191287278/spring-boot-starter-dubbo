@@ -149,7 +149,7 @@ public class FeignProtocol extends AbstractProxyProtocol {
                 .setDefaultRequestConfig(requestConfig)
                 .setMaxConnPerRoute(connections)
                 .setMaxConnTotal(connections)
-                .setRetryHandler(new DefaultHttpRequestRetryHandler(0, true))
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(0, false))
                 .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())
                 .build();
 

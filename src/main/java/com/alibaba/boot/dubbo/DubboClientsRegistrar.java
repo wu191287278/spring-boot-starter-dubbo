@@ -44,66 +44,74 @@ public class DubboClientsRegistrar implements ImportBeanDefinitionRegistrar, Res
 
     public void registerFeignClients(AnnotationMetadata metadata, BeanDefinitionRegistry registry) throws ClassNotFoundException {
         String scan = resolve("${spring.dubbo.scan}");
-        if (StringUtils.isEmpty(scan)) {
+        if (scan == null || StringUtils.isEmpty(scan) || scan.equalsIgnoreCase("${spring.dubbo.scan}")) {
             return;
         }
-
-        ClassPathScanningCandidateComponentProvider provider = getScanner();
-
-        if (ClassUtils.isPresent("org.springframework.cloud.netflix.feign.FeignClient", this.getClass().getClassLoader())) {
-            provider.addIncludeFilter(new AnnotationTypeFilter(FeignClient.class));
-        }
-
-        provider.addIncludeFilter(new AnnotationTypeFilter(DubboClient.class));
         for (String basePackage : scan.split(",")) {
+
+            ClassPathScanningCandidateComponentProvider provider = getScanner();
+
+            if (ClassUtils.isPresent("org.springframework.cloud.netflix.feign.FeignClient", this.getClass().getClassLoader())) {
+                provider.addIncludeFilter(new AnnotationTypeFilter(FeignClient.class));
+            }
+
+            provider.addIncludeFilter(new AnnotationTypeFilter(DubboClient.class));
             Set<BeanDefinition> candidateComponents = provider.findCandidateComponents(basePackage);
             for (BeanDefinition candidateComponent : candidateComponents) {
                 String beanClassName = candidateComponent.getBeanClassName();
                 Class<?> aClass = ClassUtils.forName(beanClassName, DubboClientsRegistrar.class.getClassLoader());
                 BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ReferenceBean.class);
 
-                DubboClient dubboReference = aClass.getAnnotation(DubboClient.class);
+                //全局超时时间
+                String timeout = resolve("${spring.dubbo.timeout}");
+                DubboClient dubboClient = aClass.getAnnotation(DubboClient.class);
 
-                if (dubboReference != null) {
-                    Reference reference = dubboReference.value();
+                if (dubboClient != null) {
+                    Reference reference = dubboClient.value();
                     beanDefinitionBuilder.addConstructorArgValue(reference);
 
-                    if (!StringUtils.isEmpty(dubboReference.protocol())) {
-                        beanDefinitionBuilder.addPropertyValue("protocol", dubboReference.protocol());
+                    //如果Reference注解不携带时间,将使用全局时间
+                    if (reference.timeout() == 0) {
+                        beanDefinitionBuilder.addPropertyValue("timeout", Integer.parseInt(timeout));
                     }
 
-                    if(!StringUtils.isEmpty(dubboReference.connections())){
-                        beanDefinitionBuilder.addPropertyValue("connections", Integer.parseInt(resolve(dubboReference.connections())));
-
+                    if (!StringUtils.isEmpty(dubboClient.protocol())) {
+                        beanDefinitionBuilder.addPropertyValue("protocol", dubboClient.protocol());
                     }
 
-                    if(!StringUtils.isEmpty(dubboReference.retries())){
-                        beanDefinitionBuilder.addPropertyValue("retries", Integer.parseInt(resolve(dubboReference.retries())));
-
-                    }
-
-                    if(!StringUtils.isEmpty(dubboReference.actives())){
-                        beanDefinitionBuilder.addPropertyValue("actives", Integer.parseInt(resolve(dubboReference.actives())));
+                    if (!StringUtils.isEmpty(dubboClient.connections())) {
+                        beanDefinitionBuilder.addPropertyValue("connections", Integer.parseInt(resolve(dubboClient.connections())));
 
                     }
 
-                    if(!StringUtils.isEmpty(dubboReference.timeout())){
-                        beanDefinitionBuilder.addPropertyValue("timeout", Integer.parseInt(resolve(dubboReference.timeout())));
+                    if (!StringUtils.isEmpty(dubboClient.retries())) {
+                        beanDefinitionBuilder.addPropertyValue("retries", Integer.parseInt(resolve(dubboClient.retries())));
+
                     }
 
-                    if(!StringUtils.isEmpty(reference.group())){
+                    if (!StringUtils.isEmpty(dubboClient.actives())) {
+                        beanDefinitionBuilder.addPropertyValue("actives", Integer.parseInt(resolve(dubboClient.actives())));
+
+                    }
+
+                    if (!StringUtils.isEmpty(dubboClient.timeout())) {
+                        //覆盖全局超时时间
+                        beanDefinitionBuilder.addPropertyValue("timeout", Integer.parseInt(resolve(dubboClient.timeout())));
+                    }
+
+                    if (!StringUtils.isEmpty(reference.group())) {
                         beanDefinitionBuilder.addPropertyValue("group", resolve(reference.group()));
                     }
 
-                    if(!StringUtils.isEmpty(reference.version())){
+                    if (!StringUtils.isEmpty(reference.version())) {
                         beanDefinitionBuilder.addPropertyValue("version", resolve(reference.version()));
                     }
 
-                    if(!StringUtils.isEmpty(reference.url())){
+                    if (!StringUtils.isEmpty(reference.url())) {
                         beanDefinitionBuilder.addPropertyValue("url", resolve(reference.url()));
                     }
 
-                    if(!StringUtils.isEmpty(reference.loadbalance())){
+                    if (!StringUtils.isEmpty(reference.loadbalance())) {
                         beanDefinitionBuilder.addPropertyValue("loadbalance", resolve(reference.loadbalance()));
                     }
                 }
