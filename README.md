@@ -16,7 +16,7 @@
  <dependency>
         <groupId>com.github.wu191287278</groupId>
         <artifactId>spring-boot-starter-dubbo</artifactId>
-        <version>1.5.2</version>
+        <version>1.5.3</version>
  </dependency>
  ```
 
@@ -140,6 +140,50 @@ spring:
 ```
 
 
+网关支持，支持聚合dubbo rest服务同时兼容springcloud rest代理
+---
+
+maven 依赖
+
+```
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-zuul</artifactId>
+</dependency>
+```
+
+启动类
+```
+@SpringBootApplication
+@EnableDubboProxy
+public class DubboApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(DubboApplication.class, args);
+    }
+}
+```
+配置文件
+
+```
+spring:
+  application:
+    name: dubbo-application
+
+  dubbo:
+    application:
+      name: ${spring.application.name}
+    registry:
+      protocol: hazelcast
+      address: 224.5.6.7:1234
+```
+
+
+
+*演示样例*
+*https://git.oschina.net/wuyu15255872976/dubbo-demo-parent.git*
+
+
 新增Hazelcast 注册中心
 ---
 
@@ -157,8 +201,6 @@ spring:
 ```
 
 
-*演示样例*
-*https://git.oschina.net/wuyu15255872976/dubbo-demo-parent.git*
 
 
 Hazelcast 监控中心
@@ -166,6 +208,7 @@ Hazelcast 监控中心
 地址：https://hazelcast.org/download/
 
 ```
+
 ![](https://github.com/wu191287278/picture/blob/master/start-dubbo/1.png)
 ![](https://github.com/wu191287278/picture/blob/master/start-dubbo/2.png)
 ![](https://github.com/wu191287278/picture/blob/master/start-dubbo/3.png)
