@@ -60,7 +60,7 @@ public class HazelcastRegistry extends AbstractRegistry {
 
             @Override
             public void onMapEvent(MapEvent event) {
-                HazelcastRegistry.this.notify(new ArrayList<URL>());
+                HazelcastRegistry.this.notify(new ArrayList<URL>(getRegistered()));
             }
         });
     }
