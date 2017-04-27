@@ -1,7 +1,10 @@
 package com.alibaba.dubbo.registry.hazelcast;
 
+import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
-import com.alibaba.dubbo.registry.support.AbstractRegistry;
+import com.alibaba.dubbo.common.utils.UrlUtils;
+import com.alibaba.dubbo.registry.NotifyListener;
+import com.alibaba.dubbo.registry.support.FailbackRegistry;
 import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
@@ -13,7 +16,7 @@ import java.util.*;
 /**
  * Created by wuyu on 2017/4/24.
  */
-public class HazelcastRegistry extends AbstractRegistry {
+public class HazelcastRegistry extends FailbackRegistry {
 
     private HazelcastInstance hazelcastInstance;
 
@@ -41,7 +44,7 @@ public class HazelcastRegistry extends AbstractRegistry {
 
             @Override
             public void memberRemoved(MembershipEvent membershipEvent) {
-               replicatedMap.remove(membershipEvent.getMember().getUuid());
+                replicatedMap.remove(membershipEvent.getMember().getUuid());
             }
 
             @Override
@@ -70,41 +73,6 @@ public class HazelcastRegistry extends AbstractRegistry {
         return hazelcastInstance.getCluster().getClusterState().equals(ClusterState.ACTIVE);
     }
 
-    @Override
-    public void register(URL url) {
-        if (url == null) {
-            throw new IllegalArgumentException("register url == null");
-        }
-        if (logger.isInfoEnabled()) {
-            logger.info("Register: " + url);
-        }
-
-
-        Set<String> urls = replicatedMap.get(nodeId);
-        urls.add(url.toFullString());
-
-        ILock lock = hazelcastInstance.getLock(nodeId);
-        lock.lock();
-        try {
-            replicatedMap.put(nodeId, urls);
-        } finally {
-            lock.unlock();
-        }
-        getRegistered().add(url);
-    }
-
-    @Override
-    public void unregister(URL url) {
-        Set<String> urls = replicatedMap.get(this.nodeId);
-        ILock lock = hazelcastInstance.getLock(nodeId);
-        lock.lock();
-        try {
-            urls.remove(url.toFullString());
-        } finally {
-            lock.unlock();
-        }
-        getRegistered().remove(url);
-    }
 
     @Override
     public Set<URL> getRegistered() {
@@ -133,6 +101,52 @@ public class HazelcastRegistry extends AbstractRegistry {
         }
     }
 
+
+
+    protected void subscribed(URL url, NotifyListener listener) {
+        List<URL> urls = lookup(url);
+        notify(url, listener, urls);
+    }
+
+    @Override
+    protected void doRegister(URL url) {
+        if (logger.isInfoEnabled()) {
+            logger.info("Register: " + url);
+        }
+        Set<String> urls = replicatedMap.get(nodeId);
+        urls.add(url.toFullString());
+
+        ILock lock = hazelcastInstance.getLock(nodeId);
+        lock.lock();
+        try {
+            replicatedMap.put(nodeId, urls);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    protected void doUnregister(URL url) {
+        Set<String> urls = replicatedMap.get(this.nodeId);
+        ILock lock = hazelcastInstance.getLock(nodeId);
+        lock.lock();
+        try {
+            urls.remove(url.toFullString());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    protected void doSubscribe(URL url, NotifyListener listener) {
+
+    }
+
+    @Override
+    protected void doUnsubscribe(URL url, NotifyListener listener) {
+
+    }
+
     private List<URL> toUrl(Collection<String> urls) {
         if (urls == null) {
             return new ArrayList<>();
@@ -144,6 +158,42 @@ public class HazelcastRegistry extends AbstractRegistry {
         return converts;
     }
 
+    @Override
+    public void subscribe(URL url, NotifyListener listener) {
+        super.subscribe(url, listener);
+        subscribed(url,listener);
+    }
+
+    public List<URL> lookup(URL url) {
+        List<URL> urls = new ArrayList<URL>();
+        Map<String, List<URL>> notifiedUrls = getNotified().get(url);
+        if (notifiedUrls != null && notifiedUrls.size() > 0) {
+            for (List<URL> values : notifiedUrls.values()) {
+                urls.addAll(values);
+            }
+        }
+        if (urls == null || urls.size() == 0) {
+            Set<URL> cacheUrls = getRegistered();
+            if (cacheUrls != null && cacheUrls.size() > 0) {
+                urls.addAll(cacheUrls);
+            }
+        }
+        if (urls == null || urls.size() == 0) {
+            for (URL u : getRegistered()) {
+                if (UrlUtils.isMatch(url, u)) {
+                    urls.add(u);
+                }
+            }
+        }
+        if (Constants.ANY_VALUE.equals(url.getServiceInterface())) {
+            for (URL u : getSubscribed().keySet()) {
+                if (UrlUtils.isMatch(url, u)) {
+                    urls.add(u);
+                }
+            }
+        }
+        return urls;
+    }
 
     public String getNodeId() {
         return nodeId;

@@ -3,7 +3,6 @@ package com.alibaba.boot.dubbo;
 import com.alibaba.boot.dubbo.endpoint.DubboEndpoint;
 import com.alibaba.boot.dubbo.health.DubboHealthIndicator;
 import com.alibaba.dubbo.config.ApplicationConfig;
-import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +41,10 @@ public class DubboAutoConfiguration {
         return new DubboEndpoint();
     }
 
-
     @Bean
     public DubboHealthIndicator dubboHealthIndicator() {
         return new DubboHealthIndicator();
     }
+
 
 }

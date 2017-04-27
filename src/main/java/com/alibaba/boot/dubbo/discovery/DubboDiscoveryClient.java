@@ -39,7 +39,7 @@ public class DubboDiscoveryClient implements DiscoveryClient, InitializingBean {
 
     protected String serviceId = "dubbo-gateway";
 
-    protected Set<String> support = new HashSet<>(Arrays.asList("feign", "feigns", "springmvc", "rest", "webservice", "hessian",
+    protected Set<String> support = new HashSet<>(Arrays.asList("feign", "feigns", "ribbon", "ribbons", "springmvc", "rest", "webservice", "hessian",
             "burlap", "spark", "play", "jfinal", "ratpack", "jersey", "hprose", "http", "jsonrpc", "xmlrpc"));
 
     protected DubboApplicationEventPublisher dubboApplicationEventPublisher;

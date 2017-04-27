@@ -5,28 +5,29 @@ import com.alibaba.dubbo.config.*;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.config.spring.AnnotationBean;
 import com.alibaba.dubbo.config.spring.ServiceBean;
+import com.alibaba.dubbo.rpc.Filter;
 import com.alibaba.dubbo.rpc.Protocol;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ReflectionUtils;
 
+import javax.annotation.Resource;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by wuyu on 2017/4/19.
  */
-public class AnnotationBeanConfiguration extends AnnotationBean {
+public class AnnotationBeanConfiguration extends AnnotationBean implements ApplicationListener<ContextRefreshedEvent> {
 
     private ApplicationContext applicationContext;
 
     private String annotationPackage;
-
-    private ExtensionLoader<Protocol> protocolExtensionLoader = ExtensionLoader.getExtensionLoader(Protocol.class);
 
 
     /**
@@ -63,6 +64,7 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
             return bean;
         }
 
+//        autowiredFilterDependency(bean);
         Class<?> targetClass = AopUtils.getTargetClass(bean);
         Service service = targetClass.getAnnotation(Service.class);
 
@@ -112,6 +114,7 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
 
                 if (service.protocol().length > 0) {
                     List<ProtocolConfig> protocolConfigs = new ArrayList<>();
+                    ExtensionLoader<Protocol> protocolExtensionLoader = ExtensionLoader.getExtensionLoader(Protocol.class);
                     Set<String> supportedExtensions = protocolExtensionLoader.getSupportedExtensions();
                     for (String protocol : service.protocol()) {
                         if (supportedExtensions.contains(protocol)) {
@@ -185,5 +188,45 @@ public class AnnotationBeanConfiguration extends AnnotationBean {
             }
         }
         return false;
+    }
+
+    private Set<String> names = new HashSet<>();
+
+
+    protected void autowiredFilterDependency(Object object) {
+        Class<?> targetClass = AopUtils.getTargetClass(object);
+        Service service = targetClass.getAnnotation(Service.class);
+        DubboClient dubboClient = targetClass.getAnnotation(DubboClient.class);
+
+        if (service != null) {
+            names.addAll(Arrays.asList(service.filter()));
+        }
+
+        if (dubboClient != null) {
+            names.addAll(Arrays.asList(dubboClient.value().filter()));
+        }
+
+
+    }
+
+
+    protected void autowired(Object object) {
+        if (object == null) return;
+        Class<?> targetClass = AopUtils.getTargetClass(object);
+        for (Field field : targetClass.getDeclaredFields()) {
+            Autowired autowired = field.getAnnotation(Autowired.class);
+            Resource resource = field.getAnnotation(Resource.class);
+            if (autowired != null || resource != null) {
+                applicationContext.getAutowireCapableBeanFactory().autowireBean(object);
+            }
+        }
+    }
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        for (String filterKey : names) {
+            Filter filter = ExtensionLoader.getExtensionLoader(Filter.class).getExtension(filterKey);
+            autowired(filter);
+        }
     }
 }

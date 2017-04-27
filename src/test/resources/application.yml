@@ -10,7 +10,7 @@ spring:
       name: ${spring.application.name}
     registry:
       protocol: hazelcast
-      address: 224.5.6.7:1234 #?managementCenter=http://localhost:8080/mancenter 可以不填写，该地址 是hazelcast监控地址。用于汇报状态以及监控
+      address: 224.5.6.7:1234?managementCenter=http://localhost:8080/mancenter
 #      address: localhost:2181
 #      protocol: multicast
 #      address: 224.5.6.7:1234?unicast=false
