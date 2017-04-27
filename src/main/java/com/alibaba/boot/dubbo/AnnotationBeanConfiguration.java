@@ -64,7 +64,7 @@ public class AnnotationBeanConfiguration extends AnnotationBean implements Appli
             return bean;
         }
 
-//        autowiredFilterDependency(bean);
+        autowiredFilterDependency(bean);
         Class<?> targetClass = AopUtils.getTargetClass(bean);
         Service service = targetClass.getAnnotation(Service.class);
 
