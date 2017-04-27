@@ -26,7 +26,10 @@ public class HazelcastRegistry extends FailbackRegistry {
 
     public HazelcastRegistry(URL url) {
         super(url);
-        Config config = new Config("dubbo");
+
+        String username = url.getParameter("username","dubbo");
+
+        Config config = new Config(username);
 
         if (url.getParameter("managementCenter") != null) {
             String managerUrl = url.getParameter("managementCenter");
@@ -34,7 +37,7 @@ public class HazelcastRegistry extends FailbackRegistry {
             config.getManagementCenterConfig().setUrl(managerUrl);
             config.getManagementCenterConfig().setUpdateInterval(url.getParameter("updateInterval", 5));
         }
-        config.setGroupConfig(new GroupConfig(url.getUsername() == null ? "dubbo" : url.getUsername(), url.getPassword() == null ? "dubbo" : url.getPassword()));
+        config.setGroupConfig(new GroupConfig(url.getUsername() == null ? username : url.getUsername(), url.getPassword() == null ? "dubbo" : url.getPassword()));
         this.hazelcastInstance = HazelcastInstanceFactory.getOrCreateHazelcastInstance(config);
         this.hazelcastInstance.getCluster().addMembershipListener(new MembershipListener() {
             @Override
@@ -52,7 +55,7 @@ public class HazelcastRegistry extends FailbackRegistry {
 
             }
         });
-        this.replicatedMap = hazelcastInstance.getReplicatedMap("dubbo-registered");
+        this.replicatedMap = hazelcastInstance.getReplicatedMap(username+"-dubbo-registered");
         this.nodeId = hazelcastInstance.getCluster().getLocalMember().getUuid();
         replicatedMap.put(nodeId, new LinkedHashSet<String>());
         replicatedMap.addEntryListener(new EntryAdapter<String, Set<String>>() {
@@ -100,7 +103,6 @@ public class HazelcastRegistry extends FailbackRegistry {
             logger.warn(e.getMessage());
         }
     }
-
 
 
     protected void subscribed(URL url, NotifyListener listener) {
@@ -161,7 +163,7 @@ public class HazelcastRegistry extends FailbackRegistry {
     @Override
     public void subscribe(URL url, NotifyListener listener) {
         super.subscribe(url, listener);
-        subscribed(url,listener);
+        subscribed(url, listener);
     }
 
     public List<URL> lookup(URL url) {
