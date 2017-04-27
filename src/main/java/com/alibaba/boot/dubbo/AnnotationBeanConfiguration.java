@@ -64,7 +64,7 @@ public class AnnotationBeanConfiguration extends AnnotationBean implements Appli
             return bean;
         }
 
-        autowiredFilterDependency(bean);
+        autowiredDubboDependency(bean);
         Class<?> targetClass = AopUtils.getTargetClass(bean);
         Service service = targetClass.getAnnotation(Service.class);
 
@@ -190,23 +190,25 @@ public class AnnotationBeanConfiguration extends AnnotationBean implements Appli
         return false;
     }
 
-    private Set<String> names = new HashSet<>();
+    private Set<String> filterKeys = new HashSet<>();
 
+    private Set<String> protocolKeys = new HashSet<>();
 
-    protected void autowiredFilterDependency(Object object) {
+    protected void autowiredDubboDependency(Object object) {
         Class<?> targetClass = AopUtils.getTargetClass(object);
         Service service = targetClass.getAnnotation(Service.class);
         DubboClient dubboClient = targetClass.getAnnotation(DubboClient.class);
 
+
         if (service != null) {
-            names.addAll(Arrays.asList(service.filter()));
+            filterKeys.addAll(Arrays.asList(service.filter()));
+            protocolKeys.addAll(Arrays.asList(service.protocol()));
         }
 
         if (dubboClient != null) {
-            names.addAll(Arrays.asList(dubboClient.value().filter()));
+            filterKeys.addAll(Arrays.asList(dubboClient.value().filter()));
+            protocolKeys.addAll(Arrays.asList(service.protocol()));
         }
-
-
     }
 
 
@@ -224,9 +226,14 @@ public class AnnotationBeanConfiguration extends AnnotationBean implements Appli
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        for (String filterKey : names) {
+        for (String filterKey : filterKeys) {
             Filter filter = ExtensionLoader.getExtensionLoader(Filter.class).getExtension(filterKey);
             autowired(filter);
+        }
+
+        for (String protocolKey : protocolKeys) {
+            Protocol protocol = ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(protocolKey);
+            autowired(protocol);
         }
     }
 }
