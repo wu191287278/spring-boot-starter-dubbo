@@ -12,6 +12,7 @@ public class DubboProperties {
     //全局超时时间
     private Integer           timeout = 1000;
 
+    //泛化服务代理路径前缀
     private String            genericPrefix = "/proxy/";
 
     @NestedConfigurationProperty

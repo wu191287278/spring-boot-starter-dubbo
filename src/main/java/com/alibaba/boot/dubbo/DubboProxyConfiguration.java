@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.netflix.zuul.filters.RouteLocator;
@@ -26,6 +27,13 @@ public class DubboProxyConfiguration {
     @ConditionalOnMissingBean
     public DubboApplicationEventPublisher dubboApplicationEventPublisher() {
         return new DubboApplicationEventPublisher();
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "spring.dubbo.generic-prefix")
+    public DubboGenericProxy dubboGenericProxy(DubboProperties dubboProperties, ZuulProperties zuulProperties) {
+        zuulProperties.getIgnoredPatterns().add(dubboProperties.getGenericPrefix() + "/**");
+        return new DubboGenericProxy();
     }
 
     @Bean
@@ -51,11 +59,5 @@ public class DubboProxyConfiguration {
                 applicationName, registryConfigs, dubboApplicationEventPublisher), zuulProperties);
     }
 
-
-    @Bean
-    @ConditionalOnMissingBean
-    public DubboGenericProxy dubboGenericProxy() {
-        return new DubboGenericProxy();
-    }
 
 }
