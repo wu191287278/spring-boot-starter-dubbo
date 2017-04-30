@@ -12,6 +12,8 @@ public class DubboProperties {
     //全局超时时间
     private Integer           timeout = 1000;
 
+    private String            genericPrefix = "/proxy/";
+
     @NestedConfigurationProperty
     private ApplicationConfig application;
 
@@ -59,5 +61,13 @@ public class DubboProperties {
 
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
+    }
+
+    public String getGenericPrefix() {
+        return genericPrefix;
+    }
+
+    public void setGenericPrefix(String genericPrefix) {
+        this.genericPrefix = genericPrefix;
     }
 }

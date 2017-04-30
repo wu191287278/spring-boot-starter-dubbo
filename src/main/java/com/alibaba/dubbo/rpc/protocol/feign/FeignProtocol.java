@@ -154,27 +154,19 @@ public class FeignProtocol extends AbstractProxyProtocol {
                 .build();
 
         FeignClient feignClient = type.getAnnotation(FeignClient.class);
-        Class<?> fallbackFactory = feignClient.fallbackFactory();
-
-        SetterFactory setterFactory;
-        if (void.class != fallbackFactory) {
-            setterFactory = getApplicationContext().getBean(SetterFactory.class);
-        } else {
-            setterFactory = new SetterFactory() {
-                @Override
-                public HystrixCommand.Setter create(Target<?> target, Method method) {
-                    String groupKey = target.name();
-                    String commandKey = Feign.configKey(target.type(), method);
-                    return HystrixCommand.Setter
-                            .withGroupKey(HystrixCommandGroupKey.Factory.asKey(groupKey))
-                            .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
-                                    .withExecutionTimeoutInMilliseconds(timeout)
-                                    .withExecutionIsolationSemaphoreMaxConcurrentRequests(connections))
-                            .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey));
-                }
-            };
-        }
-
+        SetterFactory setterFactory = new SetterFactory() {
+            @Override
+            public HystrixCommand.Setter create(Target<?> target, Method method) {
+                String groupKey = target.name();
+                String commandKey = Feign.configKey(target.type(), method);
+                return HystrixCommand.Setter
+                        .withGroupKey(HystrixCommandGroupKey.Factory.asKey(groupKey))
+                        .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
+                                .withExecutionTimeoutInMilliseconds(timeout)
+                                .withExecutionIsolationSemaphoreMaxConcurrentRequests(connections))
+                        .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey));
+            }
+        };
 
         HystrixFeign.Builder builder = HystrixFeign.builder()
                 .setterFactory(setterFactory)
@@ -186,22 +178,33 @@ public class FeignProtocol extends AbstractProxyProtocol {
                 .errorDecoder(new ErrorDecoder.Default())
                 .retryer(new Retryer.Default(100, 500, retries));
 
-        if (feignClient.decode404()) {
-            builder.decode404();
-        }
 
-        Class<?> fallback = feignClient.fallback();
-
-        if (void.class != fallback) {
-            try {
-                Map<String, ?> beansOfType = getApplicationContext().getBeansOfType(fallback);
-                if (beansOfType.size() > 0) {
-                    return builder.target(type, url, (T) getApplicationContext().getBean(fallback));
+        if (feignClient != null) {
+            Class<?> fallbackFactory = feignClient.fallbackFactory();
+            if (void.class != fallbackFactory) {
+                if (void.class != fallbackFactory) {
+                    setterFactory = getApplicationContext().getBean(SetterFactory.class);
                 }
-                return builder.target(type, url, (T) fallback.newInstance());
+            }
 
-            } catch (Exception e) {
-                throw new RpcException(e);
+            builder.setterFactory(setterFactory);
+
+            if (feignClient.decode404()) {
+                builder.decode404();
+            }
+
+            Class<?> fallback = feignClient.fallback();
+            if (void.class != fallback) {
+                try {
+                    Map<String, ?> beansOfType = getApplicationContext().getBeansOfType(fallback);
+                    if (beansOfType.size() > 0) {
+                        return builder.target(type, url, (T) getApplicationContext().getBean(fallback));
+                    }
+                    return builder.target(type, url, (T) fallback.newInstance());
+
+                } catch (Exception e) {
+                    throw new RpcException(e);
+                }
             }
         }
         return builder.target(type, url);

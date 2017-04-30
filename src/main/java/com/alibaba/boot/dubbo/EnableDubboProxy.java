@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(value = {DubboGatewayConfiguration.class})
+@Import(value = {DubboProxyConfiguration.class})
 @EnableDubboAutoConfiguration
 @EnableZuulProxy
 public @interface EnableDubboProxy {

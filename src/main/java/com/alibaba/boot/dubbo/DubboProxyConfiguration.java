@@ -20,7 +20,7 @@ import java.util.List;
  * Created by wuyu on 2017/4/22.
  */
 @AutoConfigureAfter(DubboAutoConfiguration.class)
-public class DubboGatewayConfiguration {
+public class DubboProxyConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
@@ -51,5 +51,11 @@ public class DubboGatewayConfiguration {
                 applicationName, registryConfigs, dubboApplicationEventPublisher), zuulProperties);
     }
 
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DubboGenericProxy dubboGenericProxy() {
+        return new DubboGenericProxy();
+    }
 
 }
