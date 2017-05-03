@@ -16,6 +16,7 @@
         <dubbo.version>2.5.3</dubbo.version>
         <zkclient.version>0.1</zkclient.version>
         <zookeeper.version>3.4.5</zookeeper.version>
+        <ribbon.version>2.2.2</ribbon.version>
     </properties>
 
     <distributionManagement>
@@ -110,10 +111,19 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-feign</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-httpclient</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.netflix.ribbon</groupId>
+            <artifactId>ribbon-transport</artifactId>
+            <version>${ribbon.version}</version>
+            <optional>true</optional>
+        </dependency>
+
 
         <dependency>
             <groupId>com.alibaba</groupId>
