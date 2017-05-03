@@ -1,6 +1,7 @@
 package com.alibaba.boot.dubbo.endpoint;
 
 import java.util.List;
+import java.util.Map;
 
 public class ProviderBean {
 
@@ -9,7 +10,7 @@ public class ProviderBean {
     private String       version;
     private String       group;
     private Integer      timeout;
-    private List methodNames;
+    private Map<String,List<String>> methodNames;
 
     private Integer connections;
     private String protocol;
@@ -25,14 +26,6 @@ public class ProviderBean {
         this.target = target;
     }
 
-
-    public List getMethodNames() {
-        return methodNames;
-    }
-
-    public void setMethodNames(List methodNames) {
-        this.methodNames = methodNames;
-    }
 
     public Integer getConnections() {
         return connections;
@@ -104,5 +97,13 @@ public class ProviderBean {
 
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
+    }
+
+    public Map<String, List<String>> getMethodNames() {
+        return methodNames;
+    }
+
+    public void setMethodNames(Map<String, List<String>> methodNames) {
+        this.methodNames = methodNames;
     }
 }

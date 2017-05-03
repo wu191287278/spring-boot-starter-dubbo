@@ -1,13 +1,14 @@
 package com.alibaba.boot.dubbo.endpoint;
 
 import java.util.List;
+import java.util.Map;
 
 public class ConsumerBean {
 
     private String       group;
     private String       version;
     private String       interfaceName;
-    private List methodNames;
+    private  Map<String, List<String>> methodNames;
     private Integer timeout;
     private Integer connections;
     private String protocol;
@@ -91,11 +92,13 @@ public class ConsumerBean {
         this.protocol = protocol;
     }
 
-    public void setMethodNames(List methodNames) {
-        this.methodNames = methodNames;
+
+    public  Map<String, List<String>> getMethodNames() {
+        return methodNames;
     }
 
-    public List getMethodNames() {
-        return methodNames;
+
+    public void setMethodNames( Map<String, List<String>> methodNames) {
+        this.methodNames = methodNames;
     }
 }

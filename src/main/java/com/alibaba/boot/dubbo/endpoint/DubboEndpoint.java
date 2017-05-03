@@ -5,6 +5,8 @@ import com.alibaba.boot.dubbo.DubboProperties;
 import com.alibaba.dubbo.config.ServiceConfig;
 import com.alibaba.dubbo.config.spring.AnnotationBean;
 import com.alibaba.dubbo.config.spring.ReferenceBean;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.actuate.endpoint.AbstractEndpoint;
@@ -14,6 +16,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class DubboEndpoint extends AbstractEndpoint<Map<String, Object>> implements ApplicationContextAware {
@@ -34,7 +37,7 @@ public class DubboEndpoint extends AbstractEndpoint<Map<String, Object>> impleme
         List<ProviderBean> publishedInterfaceList = new ArrayList<>();
         List<ConsumerBean> subscribedInterfaceList = new ArrayList<>();
         String[] names = context.getBeanNamesForType(AnnotationBean.class);
-        if(names.length>0){
+        if (names.length > 0) {
             AnnotationBean annotationBean = context.getBean(names[0], AnnotationBean.class);
             Field serviceConfigsField = ReflectionUtils.findField(AnnotationBean.class, "serviceConfigs");
             ReflectionUtils.makeAccessible(serviceConfigsField);
@@ -44,10 +47,17 @@ public class DubboEndpoint extends AbstractEndpoint<Map<String, Object>> impleme
                 for (ServiceConfig config : serviceConfigs) {
                     ProviderBean providerBean = new ProviderBean();
                     Class<?> interfaceName = config.getInterfaceClass();
-                    List<String> methodNames = new ArrayList<>();
+                    Map<String, List<String>> methodNames = new LinkedHashMap<>();
                     Method[] methods = interfaceName.getMethods();
                     for (Method method : methods) {
-                        methodNames.add(method.getName());
+                        List<String> paramsType = new ArrayList<>();
+                        Type[] genericParameterTypes = method.getGenericParameterTypes();
+                        for (Type genericParameterType : genericParameterTypes) {
+                            JavaType javaType = TypeFactory.defaultInstance().constructType(genericParameterType);
+                            Class<?> rawClass = javaType.getRawClass();
+                            paramsType.add(rawClass.getName());
+                            methodNames.put(method.getName(), paramsType);
+                        }
                     }
 
                     providerBean.setTarget(AopUtils.getTargetClass(config.getRef()).getName());
@@ -67,9 +77,17 @@ public class DubboEndpoint extends AbstractEndpoint<Map<String, Object>> impleme
             for (ReferenceBean referenceBean : referenceBeanMap.values()) {
                 ConsumerBean consumerBean = new ConsumerBean();
                 Class interfaceClass = referenceBean.getInterfaceClass();
-                List<String> methodNames = new ArrayList<>();
-                for (Method method : interfaceClass.getMethods()) {
-                    methodNames.add(method.getName());
+                Map<String, List<String>> methodNames = new LinkedHashMap<>();
+                Method[] methods = interfaceClass.getMethods();
+                for (Method method : methods) {
+                    List<String> paramsType = new ArrayList<>();
+                    Type[] genericParameterTypes = method.getGenericParameterTypes();
+                    for (Type genericParameterType : genericParameterTypes) {
+                        JavaType javaType = TypeFactory.defaultInstance().constructType(genericParameterType);
+                        Class<?> rawClass = javaType.getRawClass();
+                        paramsType.add(rawClass.getName());
+                        methodNames.put(method.getName(), paramsType);
+                    }
                 }
                 consumerBean.setGroup(referenceBean.getGroup());
                 consumerBean.setInterfaceName(referenceBean.getInterface());
