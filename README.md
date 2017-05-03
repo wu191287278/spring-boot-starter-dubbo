@@ -190,6 +190,7 @@ spring:
 泛化代理Dubbo转换成rest
 
 ```
+
 spring:
   application:
     name: dubbo-application
@@ -202,6 +203,7 @@ spring:
       address: 224.5.6.7:1234
     generic-prefix: /proxy
 
+//rest请求示例
 {
 	"params":[1],
 	"method":"com.example.service.UserService.selectByPrimaryKey",
@@ -214,7 +216,6 @@ spring:
 	"method":"com.example.service.UserService.insert",
 	"version":"1.0.0"
 }
-
 
 ```
 
