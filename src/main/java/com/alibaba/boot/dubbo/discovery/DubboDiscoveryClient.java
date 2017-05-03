@@ -95,7 +95,7 @@ public class DubboDiscoveryClient implements DiscoveryClient, InitializingBean {
             }
 
             DefaultServiceInstance instance;
-            if ("feigns".equalsIgnoreCase(provider.getProtocol())) {
+            if ("feigns".equalsIgnoreCase(provider.getProtocol()) || "ribbons".equalsIgnoreCase(provider.getProtocol())) {
                 instance = new DefaultServiceInstance(application, provider.getHost(), provider.getPort(), true);
             } else {
                 instance = new DefaultServiceInstance(application, provider.getHost(), provider.getPort(), false);
