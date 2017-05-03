@@ -187,6 +187,36 @@ spring:
       address: 224.5.6.7:1234
 ```
 
+泛化代理Dubbo转换成rest
+
+```
+spring:
+  application:
+    name: dubbo-application
+
+  dubbo:
+    application:
+      name: ${spring.application.name}
+    registry:
+      protocol: hazelcast
+      address: 224.5.6.7:1234
+    generic-prefix: /proxy
+
+{
+	"params":[1],
+	"method":"com.example.service.UserService.selectByPrimaryKey",
+	"version":"1.0.0"
+}
+
+
+{
+	"params":[{"username":"wuyu","password","123456"}],
+	"method":"com.example.service.UserService.insert",
+	"version":"1.0.0"
+}
+
+
+```
 
 
 演示样例
