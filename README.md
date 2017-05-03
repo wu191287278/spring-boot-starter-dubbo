@@ -203,7 +203,7 @@ spring:
       address: 224.5.6.7:1234
     generic-prefix: /proxy
 
-//rest请求示例
+//rest请求示例 localhost:8100/proxy/
 {
 	"params":[1],
 	"method":"com.example.service.UserService.selectByPrimaryKey",
