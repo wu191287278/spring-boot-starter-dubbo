@@ -3,6 +3,7 @@ package com.alibaba.boot.dubbo;
 import com.alibaba.boot.dubbo.discovery.DubboApplicationEventPublisher;
 import com.alibaba.boot.dubbo.discovery.DubboDiscoveryClient;
 import com.alibaba.dubbo.config.RegistryConfig;
+import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.netflix.zuul.filters.RouteLocator;
 import org.springframework.cloud.netflix.zuul.filters.ZuulProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
@@ -31,8 +33,9 @@ public class DubboProxyConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "spring.dubbo.generic-prefix")
-    public DubboGenericProxy dubboGenericProxy(DubboProperties dubboProperties, ZuulProperties zuulProperties) {
+    public DubboGenericProxy dubboGenericProxy(DubboProperties dubboProperties, ZuulProperties zuulProperties, ApplicationContext applicationContext) {
         zuulProperties.getIgnoredPatterns().add(dubboProperties.getGenericPrefix() + "/**");
+        SpringExtensionFactory.addApplicationContext(applicationContext);
         return new DubboGenericProxy();
     }
 

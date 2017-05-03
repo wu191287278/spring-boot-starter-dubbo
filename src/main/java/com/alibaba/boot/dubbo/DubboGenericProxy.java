@@ -9,6 +9,7 @@ import com.alibaba.dubbo.rpc.service.GenericService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -22,10 +23,7 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -73,7 +71,9 @@ public class DubboGenericProxy implements ApplicationContextAware {
                     } else if (jsonNode.isArray()) {
                         params[i] = objectMapper.readValue(jsonNode.toString(), ArrayList.class);
                     } else if (jsonNode.isPojo()) {
-                        params[i] = objectMapper.readValue(jsonNode.toString(), HashMap.class);
+                        params[i] = objectMapper.readValue(jsonNode.toString(), LinkedHashMap.class);
+                    } else if (jsonNode.isObject()) {
+                        params[i] = objectMapper.readValue(jsonNode.toString(), LinkedHashMap.class);
                     } else if (jsonNode.isBigDecimal()) {
                         params[i] = new BigDecimal(jsonNode.toString());
                     } else if (jsonNode.isBigInteger()) {
@@ -114,6 +114,7 @@ public class DubboGenericProxy implements ApplicationContextAware {
             reference.setGroup(config.getGroup());
         }
         reference.setGeneric(true); // 声明为泛化接口
+        reference.setProtocol("dubbo");
         genericService = reference.get();
         referenceBeans.add(reference);
         genericServiceMap.put(key, genericService);
