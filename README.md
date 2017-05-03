@@ -210,12 +210,13 @@ spring:
 	"version":"1.0.0"
 }
 
-
+//返回结果
 {
-	"params":[{"username":"wuyu","password","123456"}],
-	"method":"com.example.service.UserService.insert",
-	"version":"1.0.0"
+  "jsonrpc": "2.0",
+  "id": null,
+  "result": "{\"id\":1,\"username\":\"wuyu\",\"createdTime\":1493775816000,\"address\":\"安徽省阜阳市\",\"class\":\"com.example.model.User\",\"password\":\"123456\"}"
 }
+
 
 ```
 
