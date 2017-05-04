@@ -160,7 +160,7 @@ public class DubboClientsRegistrar implements ImportBeanDefinitionRegistrar, Res
                         try {
                             Class<?> target = ClassUtils.forName(
                                     beanDefinition.getMetadata().getClassName(),
-                                    DubboConfigurationApplicationContextInitializer.class.getClassLoader());
+                                    resourceLoader.getClassLoader());
                             return !target.isAnnotation();
                         } catch (Exception ex) {
                             this.logger.error(

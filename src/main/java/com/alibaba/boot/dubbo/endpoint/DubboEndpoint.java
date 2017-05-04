@@ -1,7 +1,8 @@
 package com.alibaba.boot.dubbo.endpoint;
 
-import com.alibaba.boot.dubbo.AnnotationBeanConfiguration;
 import com.alibaba.boot.dubbo.DubboProperties;
+import com.alibaba.boot.dubbo.discovery.DubboDiscoveryClient;
+import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.config.ServiceConfig;
 import com.alibaba.dubbo.config.spring.AnnotationBean;
 import com.alibaba.dubbo.config.spring.ReferenceBean;
@@ -102,11 +103,19 @@ public class DubboEndpoint extends AbstractEndpoint<Map<String, Object>> impleme
             }
         }
 
+        Map<String, DubboDiscoveryClient> dubboDiscoveryClientMap = context.getBeansOfType(DubboDiscoveryClient.class);
+        Set<String> urls = new LinkedHashSet<>();
+        for (DubboDiscoveryClient dubboDiscoveryClient : dubboDiscoveryClientMap.values()) {
+            for (URL url : dubboDiscoveryClient.getUrls()) {
+                urls.add(url.toFullString());
+            }
+        }
 
         DubboProperties dubboProperties = context.getBean(DubboProperties.class);
         Map<String, Object> map = new HashMap<>();
         map.put("consumer", subscribedInterfaceList);
         map.put("provider", publishedInterfaceList);
+        map.put("hosts", urls);
         map.put("properties", dubboProperties);
         return map;
     }
