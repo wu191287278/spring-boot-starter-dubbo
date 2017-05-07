@@ -14,10 +14,12 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -44,10 +46,10 @@ public class DubboGenericService implements ApplicationContextAware {
         String jsonrpc = genericServiceConfig.getJsonrpc();
         String id = genericServiceConfig.getId();
         if (StringUtils.isBlank(genericServiceConfig.getMethod())) {
-            return createErrorResponse(jsonrpc, id, 32601, "method not find!", null);
+            return JsonRpcUtil.createErrorResponse(objectMapper, jsonrpc, id, 32601, "method not find!", null);
         }
         if (genericServiceConfig.getParams() != null && !genericServiceConfig.getParams().isArray()) {
-            return createErrorResponse(jsonrpc, id, 32602, "parameters must be array!", null);
+            return JsonRpcUtil.createErrorResponse(objectMapper, jsonrpc, id, 32602, "parameters must be array!", null);
         }
         Object result;
         try {
@@ -86,10 +88,10 @@ public class DubboGenericService implements ApplicationContextAware {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return createErrorResponse(genericServiceConfig.getJsonrpc(), genericServiceConfig.getId(), 32600, e.getMessage(), null);
+            return JsonRpcUtil.createErrorResponse(objectMapper, genericServiceConfig.getJsonrpc(), genericServiceConfig.getId(), 32600, e.getMessage(), null);
         }
 
-        return createSuccessResponse(genericServiceConfig.getJsonrpc(), genericServiceConfig.getId(), result);
+        return JsonRpcUtil.createSuccessResponse(objectMapper, genericServiceConfig.getJsonrpc(), genericServiceConfig.getId(), result);
     }
 
 
@@ -124,27 +126,6 @@ public class DubboGenericService implements ApplicationContextAware {
         return "/" + config.getGroup() + "/" + config.getVersion() + "/" + service;
     }
 
-    public JsonNode createSuccessResponse(String jsonRpc, String id, Object result) throws JsonProcessingException {
-        ObjectNode response = objectMapper.createObjectNode();
-        response.put("jsonrpc", jsonRpc==null?"2.0":jsonRpc);
-        response.put("id", id);
-        response.put("result", objectMapper.writeValueAsString(result));
-        return response;
-    }
-
-    public JsonNode createErrorResponse(String jsonRpc, String id, int code, String message, Object data) throws JsonProcessingException {
-        ObjectNode error = objectMapper.createObjectNode();
-        ObjectNode response = objectMapper.createObjectNode();
-        error.put("code", code);
-        error.put("message", message);
-        if (data != null) {
-            error.put("data", objectMapper.writeValueAsString(data));
-        }
-        response.put("id", id);
-        response.put("jsonrpc", jsonRpc==null?"2.0":jsonRpc);
-        response.put("error", objectMapper.writeValueAsString(error));
-        return response;
-    }
 
     @PreDestroy
     public void destroy() {
@@ -152,6 +133,7 @@ public class DubboGenericService implements ApplicationContextAware {
             referenceBean.destroy();
         }
     }
+
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

@@ -2,6 +2,7 @@ package com.alibaba.boot.dubbo.websocket;
 
 import com.alibaba.boot.dubbo.generic.DubboGenericService;
 import com.alibaba.boot.dubbo.generic.GenericServiceConfig;
+import com.alibaba.boot.dubbo.generic.JsonRpcUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +36,7 @@ public class GenericProxyHandler extends TextWebSocketHandler {
             jsonNode = dubboGenericProxyService.proxy(genericServiceConfig);
         } catch (Exception e) {
             e.printStackTrace();
-            jsonNode = dubboGenericProxyService.createErrorResponse("2.0", genericServiceConfig != null ? genericServiceConfig.getId() : null, 32603, e.getMessage(), null);
+            jsonNode = JsonRpcUtil.createErrorResponse(objectMapper,"2.0", genericServiceConfig != null ? genericServiceConfig.getId() : null, 32603, e.getMessage(), null);
         }
 
         return jsonNode;

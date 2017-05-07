@@ -220,7 +220,7 @@ public class FeignProtocol extends AbstractProxyProtocol {
                 return (WebApplicationContext) applicationContext;
             }
         }
-        throw new RpcException("not find webApplicationContext!");
+        throw new RpcException("not found webApplicationContext!");
     }
 
     private static Environment getEnvironment() {
