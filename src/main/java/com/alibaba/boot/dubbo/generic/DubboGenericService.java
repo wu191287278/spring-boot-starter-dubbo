@@ -1,4 +1,4 @@
-package com.alibaba.boot.dubbo;
+package com.alibaba.boot.dubbo.generic;
 
 import com.alibaba.dubbo.common.utils.ConcurrentHashSet;
 import com.alibaba.dubbo.common.utils.StringUtils;
@@ -9,30 +9,27 @@ import com.alibaba.dubbo.rpc.service.GenericService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by wuyu on 2017/4/28.
  */
-@RequestMapping(value = "${spring.dubbo.genericPrefix:/proxy}")
-@ResponseBody
-public class DubboGenericProxy implements ApplicationContextAware {
+public class DubboGenericService implements ApplicationContextAware {
 
     private Map<String, GenericService> genericServiceMap = new ConcurrentHashMap<>();
 
@@ -43,7 +40,6 @@ public class DubboGenericProxy implements ApplicationContextAware {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @RequestMapping(value = "/", method = {RequestMethod.POST, RequestMethod.DELETE, RequestMethod.PUT})
     public JsonNode proxy(@RequestBody GenericServiceConfig genericServiceConfig) throws IOException {
         String jsonrpc = genericServiceConfig.getJsonrpc();
         String id = genericServiceConfig.getId();
@@ -128,15 +124,15 @@ public class DubboGenericProxy implements ApplicationContextAware {
         return "/" + config.getGroup() + "/" + config.getVersion() + "/" + service;
     }
 
-    protected JsonNode createSuccessResponse(String jsonRpc, String id, Object result) throws JsonProcessingException {
+    public JsonNode createSuccessResponse(String jsonRpc, String id, Object result) throws JsonProcessingException {
         ObjectNode response = objectMapper.createObjectNode();
-        response.put("jsonrpc", jsonRpc);
+        response.put("jsonrpc", jsonRpc==null?"2.0":jsonRpc);
         response.put("id", id);
         response.put("result", objectMapper.writeValueAsString(result));
         return response;
     }
 
-    protected JsonNode createErrorResponse(String jsonRpc, String id, int code, String message, Object data) throws JsonProcessingException {
+    public JsonNode createErrorResponse(String jsonRpc, String id, int code, String message, Object data) throws JsonProcessingException {
         ObjectNode error = objectMapper.createObjectNode();
         ObjectNode response = objectMapper.createObjectNode();
         error.put("code", code);
@@ -145,7 +141,7 @@ public class DubboGenericProxy implements ApplicationContextAware {
             error.put("data", objectMapper.writeValueAsString(data));
         }
         response.put("id", id);
-        response.put("jsonrpc", jsonRpc);
+        response.put("jsonrpc", jsonRpc==null?"2.0":jsonRpc);
         response.put("error", objectMapper.writeValueAsString(error));
         return response;
     }

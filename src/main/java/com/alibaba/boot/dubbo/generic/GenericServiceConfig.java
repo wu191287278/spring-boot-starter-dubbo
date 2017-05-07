@@ -1,4 +1,4 @@
-package com.alibaba.boot.dubbo;
+package com.alibaba.boot.dubbo.generic;
 
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,6 +31,7 @@ public class GenericServiceConfig implements Serializable {
     //参数类型
     private String[] paramsType;
 
+
     public String getGroup() {
         return group;
     }
@@ -46,19 +47,21 @@ public class GenericServiceConfig implements Serializable {
         return method;
     }
 
-    public void setMethod(String method) {
+    public GenericServiceConfig setMethod(String method) {
         this.method = method;
+        return this;
     }
 
     public String getVersion() {
         return version;
     }
 
-    public void setVersion(String version) {
+    public GenericServiceConfig setVersion(String version) {
         if (StringUtils.isBlank(version)) {
-            return;
+            return this;
         }
         this.version = version;
+        return this;
     }
 
 
@@ -80,20 +83,23 @@ public class GenericServiceConfig implements Serializable {
         return jsonrpc;
     }
 
-    public void setJsonrpc(String jsonrpc) {
+    public GenericServiceConfig setJsonrpc(String jsonrpc) {
         this.jsonrpc = jsonrpc;
+        return this;
     }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public GenericServiceConfig setId(String id) {
         this.id = id;
+        return this;
     }
 
-    public void setParams(JsonNode params) {
+    public GenericServiceConfig setParams(JsonNode params) {
         this.params = params;
+        return this;
     }
 
     public JsonNode getParams() {
@@ -104,7 +110,8 @@ public class GenericServiceConfig implements Serializable {
         return paramsType;
     }
 
-    public void setParamsType(String[] paramsType) {
+    public GenericServiceConfig setParamsType(String[] paramsType) {
         this.paramsType = paramsType;
+        return this;
     }
 }
