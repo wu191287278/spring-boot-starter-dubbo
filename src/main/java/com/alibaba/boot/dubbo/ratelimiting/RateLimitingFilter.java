@@ -21,9 +21,9 @@ public class RateLimitingFilter extends ZuulFilter {
 
     private long rateLimit = 100000L;
 
-    private final RateLimitingRepository rateLimitingRepository;
+    private final RateLimitingMapRepository rateLimitingRepository;
 
-    public RateLimitingFilter(RateLimitingRepository rateLimitingRepository, long rateLimit) {
+    public RateLimitingFilter(RateLimitingMapRepository rateLimitingRepository, long rateLimit) {
         this.rateLimitingRepository = rateLimitingRepository;
         this.rateLimit = rateLimit;
     }

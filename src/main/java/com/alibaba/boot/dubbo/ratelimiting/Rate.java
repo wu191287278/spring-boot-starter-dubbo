@@ -1,12 +1,16 @@
 package com.alibaba.boot.dubbo.ratelimiting;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by wuyu on 2017/5/6.
  */
-public class RateLimiting {
+public class Rate implements Serializable{
+
+    private static final long serialVersionUID = 1927816293512124L;
+
 
     private String timeUnit;
 
@@ -18,7 +22,7 @@ public class RateLimiting {
         return time;
     }
 
-    public RateLimiting setTime(Date time) {
+    public Rate setTime(Date time) {
         this.time = time;
         return this;
     }
@@ -27,7 +31,7 @@ public class RateLimiting {
         return timeUnit;
     }
 
-    public RateLimiting setTimeUnit(String timeUnit) {
+    public Rate setTimeUnit(String timeUnit) {
         this.timeUnit = timeUnit;
         return this;
     }
@@ -36,7 +40,7 @@ public class RateLimiting {
         return atomicLong;
     }
 
-    public RateLimiting setAtomicLong(AtomicLong atomicLong) {
+    public Rate setAtomicLong(AtomicLong atomicLong) {
         this.atomicLong = atomicLong;
         return this;
     }
