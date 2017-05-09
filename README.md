@@ -21,7 +21,7 @@ spring-boot-start-dubbo
  <dependency>
         <groupId>com.github.wu191287278</groupId>
         <artifactId>spring-boot-starter-dubbo</artifactId>
-        <version>1.5.31</version>
+        <version>1.5.32</version>
  </dependency>
  ```
 

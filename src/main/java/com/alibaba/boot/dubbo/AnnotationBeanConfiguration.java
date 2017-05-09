@@ -16,6 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
@@ -235,7 +236,7 @@ public class AnnotationBeanConfiguration extends AnnotationBean implements Appli
             if (protocols != null) {
                 for (ProtocolConfig protocolConfig : protocols) {
                     if (protocolConfig.getName() != null) {
-                        protocolKeys.add(protocol.getName());
+                        protocolKeys.add(protocolConfig.getName());
                     }
                 }
             }
@@ -252,11 +253,17 @@ public class AnnotationBeanConfiguration extends AnnotationBean implements Appli
         }
 
         for (String filterKey : filterKeys) {
+            if(StringUtils.isEmpty(filterKey)){
+                continue;
+            }
             Filter filter = ExtensionLoader.getExtensionLoader(Filter.class).getExtension(filterKey);
             autowired(filter);
         }
 
         for (String protocolKey : protocolKeys) {
+            if(StringUtils.isEmpty(protocolKey)){
+                continue;
+            }
             Protocol protocol = ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(protocolKey);
             autowired(protocol);
         }
