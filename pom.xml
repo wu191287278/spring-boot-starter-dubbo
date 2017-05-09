@@ -3,7 +3,7 @@
 
     <groupId>com.github.wu191287278</groupId>
     <artifactId>spring-boot-starter-dubbo</artifactId>
-    <version>1.5.32</version>
+    <version>1.5.33</version>
 
     <name>Spring Boot Dubbo Rpc</name>
     <description>Spring Boot Dubbo Rpc</description>
