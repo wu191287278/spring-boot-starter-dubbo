@@ -119,10 +119,16 @@ public class AnnotationBeanConfiguration extends AnnotationBean implements Appli
                     Map<String, ProtocolConfig> beansOfType = applicationContext.getBeansOfType(ProtocolConfig.class);
 
                     for (String protocol : service.protocol()) {
+                        boolean flag = false;
                         for (ProtocolConfig protocolConfig : beansOfType.values()) {
                             if (protocolConfig.getName().equalsIgnoreCase(protocol)) {
                                 protocolConfigs.add(protocolConfig);
+                                flag=true;
                             }
+                        }
+
+                        if(!flag){
+                            protocolConfigs.add(new ProtocolConfig(protocol));
                         }
                     }
                     serviceConfig.setProtocols(protocolConfigs);
