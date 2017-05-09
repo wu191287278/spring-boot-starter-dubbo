@@ -115,13 +115,13 @@ public class AnnotationBeanConfiguration extends AnnotationBean implements Appli
 
                 if (service.protocol().length > 0) {
                     List<ProtocolConfig> protocolConfigs = new ArrayList<>();
-                    ExtensionLoader<Protocol> protocolExtensionLoader = ExtensionLoader.getExtensionLoader(Protocol.class);
-                    Set<String> supportedExtensions = protocolExtensionLoader.getSupportedExtensions();
+                    Map<String, ProtocolConfig> beansOfType = applicationContext.getBeansOfType(ProtocolConfig.class);
+
                     for (String protocol : service.protocol()) {
-                        if (supportedExtensions.contains(protocol)) {
-                            protocolConfigs.add(new ProtocolConfig(protocol));
-                        } else {
-                            protocolConfigs.add(applicationContext.getBean(protocol, ProtocolConfig.class));
+                        for (ProtocolConfig protocolConfig : beansOfType.values()) {
+                            if (protocolConfig.getName().equalsIgnoreCase(protocol)) {
+                                protocolConfigs.add(protocolConfig);
+                            }
                         }
                     }
                     serviceConfig.setProtocols(protocolConfigs);
