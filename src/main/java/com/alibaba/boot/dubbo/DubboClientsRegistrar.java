@@ -114,6 +114,9 @@ public class DubboClientsRegistrar implements ImportBeanDefinitionRegistrar, Res
                     if (!StringUtils.isEmpty(reference.loadbalance())) {
                         beanDefinitionBuilder.addPropertyValue("loadbalance", resolve(reference.loadbalance()));
                     }
+
+                    //fix dubbo @Reference check bug
+                    beanDefinitionBuilder.addPropertyValue("check", reference.check());
                 }
 
                 AbstractBeanDefinition definition = beanDefinitionBuilder
